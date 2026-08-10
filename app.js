@@ -1,733 +1,720 @@
-// Initial Default Inventory Data
+/* =============================================
+   DATA: Initial Inventory
+============================================= */
 const initialItems = [
-  // Dinesh Pachauri Items
-  { id: 1, person: "Dinesh Pachauri", desc: "Double Bottle Box", qty: 46, unit: "Per Box", price: 16.00, status: "Pending", ackBy: "", notes: "", date: "2026-08-10" },
-  { id: 2, person: "Dinesh Pachauri", desc: "Double Beer Mug Box", qty: 51, unit: "Per Box", price: 11.00, status: "Pending", ackBy: "", notes: "", date: "2026-08-10" },
-  { id: 3, person: "Dinesh Pachauri", desc: "Modak Box", qty: 13, unit: "Pack of 6", price: 23.00, status: "Pending", ackBy: "", notes: "", date: "2026-08-10" },
-  { id: 4, person: "Dinesh Pachauri", desc: "Modak Jar Cartoon", qty: 10, unit: "72 Pcs/Cartoon", price: 972.00, status: "Pending", ackBy: "", notes: "", date: "2026-08-10" },
-  { id: 5, person: "Dinesh Pachauri", desc: "Salsa Jar Cartoon", qty: 5, unit: "48 Pcs/Cartoon", price: 864.00, status: "Pending", ackBy: "", notes: "", date: "2026-08-10" },
-  { id: 6, person: "Dinesh Pachauri", desc: "Fragile Tape", qty: 1, unit: "sqft", price: 140.00, status: "Pending", ackBy: "", notes: "", date: "2026-08-10" },
-  { id: 7, person: "Dinesh Pachauri", desc: "Transparent Tape", qty: 1, unit: "Roll", price: 65.00, status: "Pending", ackBy: "", notes: "", date: "2026-08-10" },
-
-  // Mukesh Pachauri Items
-  { id: 8, person: "Mukesh Pachauri", desc: "Modak Jar Box", qty: 25, unit: "Pack of 4", price: 17.00, status: "Pending", ackBy: "", notes: "", date: "2026-08-10" },
-  { id: 9, person: "Mukesh Pachauri", desc: "Modak Jar Box", qty: 40, unit: "Pack of 6", price: 23.00, status: "Pending", ackBy: "", notes: "", date: "2026-08-10" },
-  { id: 10, person: "Mukesh Pachauri", desc: "Single Beer Mug Box", qty: 41, unit: "6/Box", price: 6.00, status: "Pending", ackBy: "", notes: "", date: "2026-08-10" },
-  { id: 11, person: "Mukesh Pachauri", desc: "Beer Mug Cartoon", qty: 10, unit: "32 Pcs/Cartoon", price: 680.00, status: "Pending", ackBy: "", notes: "", date: "2026-08-10" },
-  { id: 12, person: "Mukesh Pachauri", desc: "Cloth/Small Wrapping Sheet", qty: 2, unit: "Bundle", price: null, status: "Pending", ackBy: "", notes: "", date: "2026-08-10" },
-  { id: 13, person: "Mukesh Pachauri", desc: "Big Wrapping Sheet", qty: 1, unit: "Bundle", price: null, status: "Pending", ackBy: "", notes: "", date: "2026-08-10" }
+  { id:1,  person:"Dinesh Pachauri", desc:"Double Bottle Box",         qty:46, unit:"Per Box",         price:16,   status:"Pending", ackBy:"", notes:"", date:"2026-08-10" },
+  { id:2,  person:"Dinesh Pachauri", desc:"Double Beer Mug Box",       qty:51, unit:"Per Box",         price:11,   status:"Pending", ackBy:"", notes:"", date:"2026-08-10" },
+  { id:3,  person:"Dinesh Pachauri", desc:"Modak Box",                 qty:13, unit:"Pack of 6",       price:23,   status:"Pending", ackBy:"", notes:"", date:"2026-08-10" },
+  { id:4,  person:"Dinesh Pachauri", desc:"Modak Jar Cartoon",         qty:10, unit:"72 Pcs/Cartoon",  price:972,  status:"Pending", ackBy:"", notes:"", date:"2026-08-10" },
+  { id:5,  person:"Dinesh Pachauri", desc:"Salsa Jar Cartoon",         qty:5,  unit:"48 Pcs/Cartoon",  price:864,  status:"Pending", ackBy:"", notes:"", date:"2026-08-10" },
+  { id:6,  person:"Dinesh Pachauri", desc:"Fragile Tape",              qty:1,  unit:"sqft",            price:140,  status:"Pending", ackBy:"", notes:"", date:"2026-08-10" },
+  { id:7,  person:"Dinesh Pachauri", desc:"Transparent Tape",          qty:1,  unit:"Roll",            price:65,   status:"Pending", ackBy:"", notes:"", date:"2026-08-10" },
+  { id:8,  person:"Mukesh Pachauri", desc:"Modak Jar Box",             qty:25, unit:"Pack of 4",       price:17,   status:"Pending", ackBy:"", notes:"", date:"2026-08-10" },
+  { id:9,  person:"Mukesh Pachauri", desc:"Modak Jar Box",             qty:40, unit:"Pack of 6",       price:23,   status:"Pending", ackBy:"", notes:"", date:"2026-08-10" },
+  { id:10, person:"Mukesh Pachauri", desc:"Single Beer Mug Box",       qty:41, unit:"6/Box",           price:6,    status:"Pending", ackBy:"", notes:"", date:"2026-08-10" },
+  { id:11, person:"Mukesh Pachauri", desc:"Beer Mug Cartoon",          qty:10, unit:"32 Pcs/Cartoon",  price:680,  status:"Pending", ackBy:"", notes:"", date:"2026-08-10" },
+  { id:12, person:"Mukesh Pachauri", desc:"Cloth/Small Wrapping Sheet",qty:2,  unit:"Bundle",          price:null, status:"Pending", ackBy:"", notes:"", date:"2026-08-10" },
+  { id:13, person:"Mukesh Pachauri", desc:"Big Wrapping Sheet",        qty:1,  unit:"Bundle",          price:null, status:"Pending", ackBy:"", notes:"", date:"2026-08-10" }
 ];
 
 const initialPayments = [];
 
 const initialActivityLogs = [
-  { id: 1, timestamp: "2026-08-10 10:00:00", operator: "Dinesh Pachauri", actionType: "Item Added", details: "Initial entry created: 7 inventory items added for Dinesh Pachauri (Total: ₹15,841.00)" },
-  { id: 2, timestamp: "2026-08-10 10:05:00", operator: "Mukesh Pachauri", actionType: "Item Added", details: "Initial entry created: 6 inventory items added for Mukesh Pachauri (Total: ₹8,391.00)" }
+  { id:1, ts:"2026-08-10 10:00:00", operator:"Dinesh Pachauri", action:"Item Added", details:"Initial entry: 7 items added for Dinesh Pachauri (₹15,841.00 total)" },
+  { id:2, ts:"2026-08-10 10:05:00", operator:"Mukesh Pachauri", action:"Item Added", details:"Initial entry: 6 items added for Mukesh Pachauri (₹8,391.00 total)" }
 ];
 
-// Accounts Database (Default Password: 12345)
-const defaultAccounts = {
-  "dinesh": { username: "dinesh", name: "Dinesh Pachauri", password: "12345", isDefaultPassword: true },
-  "mukesh": { username: "mukesh", name: "Mukesh Pachauri", password: "12345", isDefaultPassword: true },
-  "Dinesh Pachauri": { username: "dinesh", name: "Dinesh Pachauri", password: "12345", isDefaultPassword: true },
-  "Mukesh Pachauri": { username: "mukesh", name: "Mukesh Pachauri", password: "12345", isDefaultPassword: true }
-};
+/* =============================================
+   AUTH: Accounts (stored in localStorage)
+   Keys: "dinesh" and "mukesh" only
+============================================= */
+const USERS_KEY     = 'pach_users';
+const SESSION_KEY   = 'pach_session';
+const ITEMS_KEY     = 'pach_items';
+const PAYMENTS_KEY  = 'pach_payments';
+const ACTIVITY_KEY  = 'pach_activity';
 
-// State Variables
-let items = JSON.parse(localStorage.getItem('pachauri_inventory_items')) || initialItems;
-let payments = JSON.parse(localStorage.getItem('pachauri_inventory_payments')) || initialPayments;
-let activityLogs = JSON.parse(localStorage.getItem('pachauri_inventory_activities')) || initialActivityLogs;
-
-// Load or Reset Users DB
-let usersDB;
-try {
-  usersDB = JSON.parse(localStorage.getItem('pachauri_users_db'));
-  if (!usersDB || !usersDB.dinesh) {
-    usersDB = { ...defaultAccounts };
-  }
-} catch (e) {
-  usersDB = { ...defaultAccounts };
+function loadUsers() {
+  try {
+    const raw = localStorage.getItem(USERS_KEY);
+    const db  = raw ? JSON.parse(raw) : null;
+    // Validate structure — must have both dinesh and mukesh
+    if (db && db.dinesh && db.mukesh) return db;
+  } catch(e) {}
+  // Return fresh defaults
+  return {
+    dinesh: { name: "Dinesh Pachauri", password: "12345", isDefault: true },
+    mukesh: { name: "Mukesh Pachauri", password: "12345", isDefault: true }
+  };
 }
 
-let authenticatedUserKey = localStorage.getItem('pachauri_logged_in_user') || null;
-let isForcedPasswordChange = false;
-let pendingUserToLogin = null;
+function saveUsers(db) {
+  localStorage.setItem(USERS_KEY, JSON.stringify(db));
+}
 
-let activeTab = 'all';
-let searchQuery = '';
+/* =============================================
+   STATE
+============================================= */
+let usersDB           = loadUsers();
+let sessionKey        = localStorage.getItem(SESSION_KEY) || null;  // "dinesh" or "mukesh"
+let pendingLoginKey   = null;   // user key waiting for forced password change
+let forcedPwdChange   = false;
+
+let items        = JSON.parse(localStorage.getItem(ITEMS_KEY))    || initialItems;
+let payments     = JSON.parse(localStorage.getItem(PAYMENTS_KEY)) || initialPayments;
+let activityLogs = JSON.parse(localStorage.getItem(ACTIVITY_KEY)) || initialActivityLogs;
+
+let activeTab    = 'all';
+let searchQuery  = '';
 let statusFilter = 'all';
 
-// DOM Elements
-const loginScreen = document.getElementById('login-screen');
-const appContainer = document.getElementById('app-container');
-const loginForm = document.getElementById('login-form');
-const loginUserKeyInput = document.getElementById('login-user-key');
-const loginPasswordInput = document.getElementById('login-password');
-const loginErrorMsg = document.getElementById('login-error-msg');
-const selectedAccountLabel = document.getElementById('selected-account-label');
-
-const userDisplayName = document.getElementById('user-display-name');
-const logoutBtn = document.getElementById('logout-btn');
-const changePwdBtn = document.getElementById('change-pwd-btn');
-const resetCredsBtn = document.getElementById('reset-creds-btn');
-
-const changePwdModal = document.getElementById('change-pwd-modal');
-const changePwdForm = document.getElementById('change-pwd-form');
-const pwdForceAlert = document.getElementById('pwd-force-alert');
-const pwdErrorMsg = document.getElementById('pwd-error-msg');
-const closePwdModalBtn = document.getElementById('close-pwd-modal-btn');
-const cancelPwdBtn = document.getElementById('cancel-pwd-btn');
-
-const itemsTbody = document.getElementById('items-tbody');
-const paymentsTbody = document.getElementById('payments-tbody');
-const activityTbody = document.getElementById('activity-tbody');
-
-const kpiDineshTotal = document.getElementById('kpi-dinesh-total');
-const kpiDineshCount = document.getElementById('kpi-dinesh-count');
-const kpiMukeshTotal = document.getElementById('kpi-mukesh-total');
-const kpiMukeshCount = document.getElementById('kpi-mukesh-count');
-const kpiPaymentsTotal = document.getElementById('kpi-payments-total');
-const kpiPaymentsCount = document.getElementById('kpi-payments-count');
-const kpiBalanceText = document.getElementById('kpi-balance-text');
-const kpiBalanceSub = document.getElementById('kpi-balance-sub');
-const netBalanceCard = document.getElementById('net-balance-card');
-const searchInput = document.getElementById('search-input');
-const statusSelectFilter = document.getElementById('status-filter');
-const recordCountBadge = document.getElementById('record-count');
-const activityCountBadge = document.getElementById('activity-count');
-
-// Formatters
-const formatCurrency = (val) => {
-  if (val === null || val === undefined || isNaN(val)) return '-';
-  return '₹' + Number(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+/* =============================================
+   HELPERS
+============================================= */
+const fmt = (v) => {
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  return '₹' + Number(v).toLocaleString('en-IN', { minimumFractionDigits:2, maximumFractionDigits:2 });
 };
 
-const getNowFormatted = () => {
-  const now = new Date();
-  const dateStr = now.toISOString().split('T')[0];
-  const timeStr = now.toTimeString().split(' ')[0];
-  return `${dateStr} ${timeStr}`;
+const now = () => {
+  const d = new Date();
+  return d.toISOString().split('T')[0] + ' ' + d.toTimeString().split(' ')[0];
 };
 
-const getActiveUserName = () => {
-  if (authenticatedUserKey && usersDB[authenticatedUserKey]) {
-    return usersDB[authenticatedUserKey].name;
-  }
-  return "Unknown User";
-};
+const activeUser = () => sessionKey ? usersDB[sessionKey]?.name || 'Unknown' : 'Unknown';
 
-// Permanent Activity Audit Logger Engine (NO DELETE OPTION)
-const logActivity = (actionType, details, userOverride = null) => {
-  const user = userOverride || getActiveUserName();
-  const newLog = {
-    id: activityLogs.length > 0 ? Math.max(...activityLogs.map(a => a.id)) + 1 : 1,
-    timestamp: getNowFormatted(),
-    operator: user,
-    actionType: actionType,
-    details: details
-  };
-  activityLogs.unshift(newLog); // newest first
-  localStorage.setItem('pachauri_inventory_activities', JSON.stringify(activityLogs));
-};
+const nextId = (arr) => arr.length ? Math.max(...arr.map(x=>x.id)) + 1 : 1;
 
-// Save State
-const saveState = () => {
-  localStorage.setItem('pachauri_inventory_items', JSON.stringify(items));
-  localStorage.setItem('pachauri_inventory_payments', JSON.stringify(payments));
-  localStorage.setItem('pachauri_inventory_activities', JSON.stringify(activityLogs));
-  localStorage.setItem('pachauri_users_db', JSON.stringify(usersDB));
-  
-  if (authenticatedUserKey) {
-    localStorage.setItem('pachauri_logged_in_user', authenticatedUserKey);
-  } else {
-    localStorage.removeItem('pachauri_logged_in_user');
-  }
-
-  updateKPIs();
-  checkAuthScreen();
-  renderTables();
-};
-
-// Check & Toggle Mandatory Login Screen
-const checkAuthScreen = () => {
-  if (!authenticatedUserKey || !usersDB[authenticatedUserKey]) {
-    loginScreen.style.display = 'flex';
-    appContainer.style.display = 'none';
-  } else {
-    loginScreen.style.display = 'none';
-    appContainer.style.display = 'flex';
-    userDisplayName.textContent = usersDB[authenticatedUserKey].name;
-  }
-};
-
-// Account Tab Picker (Dinesh vs Mukesh buttons)
-document.querySelectorAll('.account-tab-btn').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    document.querySelectorAll('.account-tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const userKey = btn.dataset.user;
-    loginUserKeyInput.value = userKey;
-    selectedAccountLabel.textContent = userKey === 'dinesh' ? 'Dinesh Pachauri' : 'Mukesh Pachauri';
-    loginErrorMsg.style.display = 'none';
+/* =============================================
+   PERSISTENT AUDIT LOG (no delete)
+============================================= */
+function logActivity(action, details) {
+  activityLogs.unshift({
+    id: nextId(activityLogs),
+    ts: now(),
+    operator: activeUser(),
+    action,
+    details
   });
-});
-
-// Mandatory Login Form Handler
-loginForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const userKey = loginUserKeyInput.value || "dinesh";
-  const password = loginPasswordInput.value.trim();
-  const userAccount = usersDB[userKey] || defaultAccounts[userKey];
-
-  if (userAccount && (userAccount.password === password || password === "12345")) {
-    loginErrorMsg.style.display = 'none';
-    pendingUserToLogin = userKey;
-
-    // Check if user is using default password '12345'
-    if (userAccount.isDefaultPassword || password === "12345") {
-      isForcedPasswordChange = true;
-      openChangePasswordModal(true);
-    } else {
-      completeLogin(userKey);
-    }
-  } else {
-    loginErrorMsg.style.display = 'block';
-  }
-});
-
-// Reset Passwords to Default Button Handler
-if (resetCredsBtn) {
-  resetCredsBtn.addEventListener('click', () => {
-    if (confirm('Reset credentials for Dinesh and Mukesh back to default password 12345?')) {
-      usersDB = { ...defaultAccounts };
-      localStorage.setItem('pachauri_users_db', JSON.stringify(usersDB));
-      loginPasswordInput.value = "12345";
-      loginErrorMsg.style.display = 'none';
-      alert('Passwords reset to 12345. You can now log in!');
-    }
-  });
+  localStorage.setItem(ACTIVITY_KEY, JSON.stringify(activityLogs));
 }
 
-// Complete Login Process
-const completeLogin = (userKey) => {
-  authenticatedUserKey = userKey;
-  saveState();
-  logActivity('User Logged In', `Account '${usersDB[userKey].name}' logged in successfully.`);
-};
+function saveAll() {
+  localStorage.setItem(ITEMS_KEY,    JSON.stringify(items));
+  localStorage.setItem(PAYMENTS_KEY, JSON.stringify(payments));
+  localStorage.setItem(ACTIVITY_KEY, JSON.stringify(activityLogs));
+  saveUsers(usersDB);
+  updateKPIs();
+  renderTables();
+}
 
-// Logout Handler
-logoutBtn.addEventListener('click', () => {
-  if (authenticatedUserKey && usersDB[authenticatedUserKey]) {
-    logActivity('User Logged Out', `Account '${usersDB[authenticatedUserKey].name}' logged out.`);
-  }
-  authenticatedUserKey = null;
-  saveState();
-});
+/* =============================================
+   AUTH SCREENS
+============================================= */
+const loginScreen    = document.getElementById('login-screen');
+const pwdChangeScreen= document.getElementById('pwd-change-screen');
+const appEl          = document.getElementById('app');
 
-// Change Password Modal Handler
-const openChangePasswordModal = (isForced = false) => {
-  changePwdForm.reset();
-  pwdErrorMsg.style.display = 'none';
-  
-  if (isForced) {
-    pwdForceAlert.style.display = 'block';
-    closePwdModalBtn.style.display = 'none';
-    cancelPwdBtn.style.display = 'none';
-    document.getElementById('pwd-modal-title').innerHTML = '<i class="fa-solid fa-user-shield"></i> Mandatory Password Change';
+function showLoginScreen() {
+  loginScreen.style.display    = 'flex';
+  pwdChangeScreen.style.display= 'none';
+  appEl.style.display          = 'none';
+}
+
+function showPwdChangeScreen() {
+  loginScreen.style.display    = 'none';
+  pwdChangeScreen.style.display= 'flex';
+  appEl.style.display          = 'none';
+}
+
+function showApp() {
+  loginScreen.style.display    = 'none';
+  pwdChangeScreen.style.display= 'none';
+  appEl.style.display          = 'flex';
+  document.getElementById('header-user-name').textContent = usersDB[sessionKey].name;
+}
+
+function checkSession() {
+  if (sessionKey && usersDB[sessionKey]) {
+    showApp();
   } else {
-    pwdForceAlert.style.display = 'none';
-    closePwdModalBtn.style.display = 'block';
-    cancelPwdBtn.style.display = 'inline-block';
-    document.getElementById('pwd-modal-title').innerHTML = '<i class="fa-solid fa-key"></i> Change Password';
+    sessionKey = null;
+    localStorage.removeItem(SESSION_KEY);
+    showLoginScreen();
   }
-  changePwdModal.classList.add('active');
-  document.getElementById('new-password').focus();
-};
+}
 
-changePwdBtn.addEventListener('click', () => {
-  isForcedPasswordChange = false;
-  openChangePasswordModal(false);
+/* =============================================
+   LOGIN FORM
+============================================= */
+// Who-buttons: select Dinesh or Mukesh
+let selectedUserKey = 'dinesh';
+
+document.querySelectorAll('.who-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    selectedUserKey = btn.dataset.key;
+    document.querySelectorAll('.who-btn').forEach(b => b.classList.remove('who-btn--active'));
+    btn.classList.add('who-btn--active');
+    // Clear error on switch
+    document.getElementById('login-error').style.display = 'none';
+    document.getElementById('login-password').value = '';
+    document.getElementById('login-password').focus();
+  });
 });
 
-changePwdForm.addEventListener('submit', (e) => {
+// Toggle password visibility
+document.getElementById('toggle-pwd-visibility').addEventListener('click', () => {
+  const inp  = document.getElementById('login-password');
+  const icon = document.getElementById('eye-icon');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    icon.className = 'fa-solid fa-eye-slash';
+  } else {
+    inp.type = 'password';
+    icon.className = 'fa-solid fa-eye';
+  }
+});
+
+// Login submit
+document.getElementById('login-form').addEventListener('submit', (e) => {
   e.preventDefault();
-  const newPwd = document.getElementById('new-password').value.trim();
-  const confirmPwd = document.getElementById('confirm-password').value.trim();
+  const key      = selectedUserKey;                          // "dinesh" or "mukesh"
+  const user     = usersDB[key];
+  const typed    = document.getElementById('login-password').value;
+  const errorBox = document.getElementById('login-error');
+  const errorTxt = document.getElementById('login-error-text');
+
+  if (!user) {
+    errorTxt.textContent = 'Account not found.';
+    errorBox.style.display = 'flex';
+    return;
+  }
+
+  if (typed !== user.password) {
+    errorTxt.textContent = 'Incorrect password. Please try again.';
+    errorBox.style.display = 'flex';
+    return;
+  }
+
+  // Correct password
+  errorBox.style.display = 'none';
+
+  if (user.isDefault) {
+    // Force password change before entering
+    pendingLoginKey = key;
+    forcedPwdChange = true;
+    document.getElementById('pwd-change-title').textContent = `Hi ${user.name.split(' ')[0]}, Set Your Password`;
+    document.getElementById('pwd-change-subtitle').textContent = 'You are using the default password "12345". Please set a personal password to continue.';
+    document.getElementById('pwd-change-form').reset();
+    document.getElementById('pwd-change-error').style.display = 'none';
+    showPwdChangeScreen();
+  } else {
+    completeLogin(key);
+  }
+});
+
+/* =============================================
+   FORCED PASSWORD CHANGE FORM
+============================================= */
+document.getElementById('pwd-change-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const newPwd     = document.getElementById('new-pwd').value;
+  const confirmPwd = document.getElementById('confirm-pwd').value;
+  const errBox     = document.getElementById('pwd-change-error');
+  const errTxt     = document.getElementById('pwd-change-error-text');
 
   if (newPwd !== confirmPwd) {
-    pwdErrorMsg.textContent = 'Passwords do not match. Please re-enter.';
-    pwdErrorMsg.style.display = 'block';
+    errTxt.textContent = 'Passwords do not match. Please re-enter.';
+    errBox.style.display = 'flex';
     return;
   }
 
-  if (newPwd === "12345") {
-    pwdErrorMsg.textContent = 'New password cannot be the default password "12345". Please choose a unique password.';
-    pwdErrorMsg.style.display = 'block';
+  if (newPwd === '12345') {
+    errTxt.textContent = 'New password cannot be the default "12345". Choose a unique password.';
+    errBox.style.display = 'flex';
     return;
   }
 
-  const targetKey = isForcedPasswordChange ? pendingUserToLogin : authenticatedUserKey;
-  if (targetKey && usersDB[targetKey]) {
-    usersDB[targetKey].password = newPwd;
-    usersDB[targetKey].isDefaultPassword = false;
-
-    // Sync both key forms ("dinesh" and "Dinesh Pachauri")
-    if (targetKey === "dinesh" || targetKey === "Dinesh Pachauri") {
-      usersDB["dinesh"].password = newPwd;
-      usersDB["dinesh"].isDefaultPassword = false;
-      if (usersDB["Dinesh Pachauri"]) usersDB["Dinesh Pachauri"].password = newPwd;
-    }
-    if (targetKey === "mukesh" || targetKey === "Mukesh Pachauri") {
-      usersDB["mukesh"].password = newPwd;
-      usersDB["mukesh"].isDefaultPassword = false;
-      if (usersDB["Mukesh Pachauri"]) usersDB["Mukesh Pachauri"].password = newPwd;
-    }
-
-    logActivity('Password Changed', `User '${usersDB[targetKey].name}' updated account password.`, usersDB[targetKey].name);
-
-    changePwdModal.classList.remove('active');
-
-    if (isForcedPasswordChange) {
-      isForcedPasswordChange = false;
-      completeLogin(targetKey);
-      pendingUserToLogin = null;
-    } else {
-      saveState();
-      alert('Password updated successfully!');
-    }
+  if (newPwd.length < 4) {
+    errTxt.textContent = 'Password must be at least 4 characters long.';
+    errBox.style.display = 'flex';
+    return;
   }
+
+  errBox.style.display = 'none';
+  const key = pendingLoginKey;
+  usersDB[key].password  = newPwd;
+  usersDB[key].isDefault = false;
+  saveUsers(usersDB);
+
+  forcedPwdChange = false;
+  pendingLoginKey = null;
+  completeLogin(key);
 });
 
-// Balance Calculation Engine
-const calculateBalance = () => {
-  const dineshItemsTotal = items
-    .filter(item => item.person === 'Dinesh Pachauri')
-    .reduce((sum, item) => sum + (item.price ? item.qty * item.price : 0), 0);
+/* =============================================
+   COMPLETE LOGIN
+============================================= */
+function completeLogin(key) {
+  sessionKey = key;
+  localStorage.setItem(SESSION_KEY, key);
+  showApp();
+  logActivity('User Logged In', `${usersDB[key].name} signed in successfully.`);
+  saveAll();
+}
 
-  const mukeshItemsTotal = items
-    .filter(item => item.person === 'Mukesh Pachauri')
-    .reduce((sum, item) => sum + (item.price ? item.qty * item.price : 0), 0);
+/* =============================================
+   LOGOUT
+============================================= */
+document.getElementById('logout-btn').addEventListener('click', () => {
+  logActivity('User Logged Out', `${usersDB[sessionKey].name} signed out.`);
+  saveAll();
+  sessionKey = null;
+  localStorage.removeItem(SESSION_KEY);
+  showLoginScreen();
+});
 
-  const paidByDinesh = payments
-    .filter(p => p.paidBy === 'Dinesh Pachauri')
-    .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+/* =============================================
+   CHANGE PASSWORD MODAL (manual via header)
+============================================= */
+document.getElementById('change-pwd-btn').addEventListener('click', () => {
+  document.getElementById('changepwd-form').reset();
+  document.getElementById('changepwd-error').style.display = 'none';
+  document.getElementById('changepwd-modal').classList.add('open');
+});
 
-  const paidByMukesh = payments
-    .filter(p => p.paidBy === 'Mukesh Pachauri')
-    .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+document.getElementById('close-changepwd-modal').addEventListener('click', () => {
+  document.getElementById('changepwd-modal').classList.remove('open');
+});
 
-  const netDinesh = dineshItemsTotal - paidByDinesh;
-  const netMukesh = mukeshItemsTotal - paidByMukesh;
-  const balanceDiff = netDinesh - netMukesh;
+document.getElementById('cancel-changepwd-modal').addEventListener('click', () => {
+  document.getElementById('changepwd-modal').classList.remove('open');
+});
 
-  return { dineshItemsTotal, mukeshItemsTotal, paidByDinesh, paidByMukesh, balanceDiff };
-};
+document.getElementById('changepwd-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const newPwd  = document.getElementById('changepwd-new').value;
+  const confPwd = document.getElementById('changepwd-confirm').value;
+  const errBox  = document.getElementById('changepwd-error');
+  const errTxt  = document.getElementById('changepwd-error-text');
 
-// Update Top KPI Metric Cards
-const updateKPIs = () => {
-  const { dineshItemsTotal, mukeshItemsTotal, paidByDinesh, paidByMukesh, balanceDiff } = calculateBalance();
-  const dineshCount = items.filter(i => i.person === 'Dinesh Pachauri').length;
-  const mukeshCount = items.filter(i => i.person === 'Mukesh Pachauri').length;
-  const totalPayments = paidByDinesh + paidByMukesh;
-
-  kpiDineshTotal.textContent = formatCurrency(dineshItemsTotal);
-  kpiDineshCount.textContent = `${dineshCount} Items Recorded`;
-
-  kpiMukeshTotal.textContent = formatCurrency(mukeshItemsTotal);
-  kpiMukeshCount.textContent = `${mukeshCount} Items Recorded`;
-
-  kpiPaymentsTotal.textContent = formatCurrency(totalPayments);
-  kpiPaymentsCount.textContent = `${payments.length} Payments Logged`;
-
-  if (balanceDiff > 0) {
-    kpiBalanceText.textContent = `Dinesh owes Mukesh ${formatCurrency(balanceDiff)}`;
-    kpiBalanceSub.textContent = "Positive Balance (Dinesh Liability)";
-    kpiBalanceText.style.color = "#dc2626";
-    netBalanceCard.style.borderColor = "#fca5a5";
-  } else if (balanceDiff < 0) {
-    kpiBalanceText.textContent = `Mukesh owes Dinesh ${formatCurrency(Math.abs(balanceDiff))}`;
-    kpiBalanceSub.textContent = "Negative Balance (Mukesh Liability)";
-    kpiBalanceText.style.color = "#2563eb";
-    netBalanceCard.style.borderColor = "#93c5fd";
-  } else {
-    kpiBalanceText.textContent = "Account Fully Balanced!";
-    kpiBalanceSub.textContent = "Net difference is ₹0.00";
-    kpiBalanceText.style.color = "#16a34a";
-    netBalanceCard.style.borderColor = "#86efac";
-  }
-};
-
-// Action Badge CSS Helper
-const getActionBadgeClass = (actionType) => {
-  if (actionType.includes('Added')) return 'badge-act-add';
-  if (actionType.includes('Updated') || actionType.includes('Edit') || actionType.includes('Password')) return 'badge-act-edit';
-  if (actionType.includes('Status')) return 'badge-act-status';
-  if (actionType.includes('Deleted')) return 'badge-act-delete';
-  if (actionType.includes('Payment')) return 'badge-act-pay';
-  if (actionType.includes('Logged')) return 'badge-act-auth';
-  return 'badge-info';
-};
-
-// Render All Tables
-const renderTables = () => {
-  let filteredItems = items.filter(item => {
-    if (activeTab === 'dinesh' && item.person !== 'Dinesh Pachauri') return false;
-    if (activeTab === 'mukesh' && item.person !== 'Mukesh Pachauri') return false;
-    if (statusFilter !== 'all' && item.status !== statusFilter) return false;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      const matchDesc = item.desc.toLowerCase().includes(q);
-      const matchNotes = (item.notes || '').toLowerCase().includes(q);
-      const matchAck = (item.ackBy || '').toLowerCase().includes(q);
-      if (!matchDesc && !matchNotes && !matchAck) return false;
-    }
-    return true;
-  });
-
-  recordCountBadge.textContent = `${filteredItems.length} Items`;
-  if (activityCountBadge) activityCountBadge.textContent = `${activityLogs.length} Activities Logged`;
-
-  // Tab View Switcher
-  if (activeTab === 'payments') {
-    document.getElementById('items-section').style.display = 'none';
-    document.getElementById('payments-section').style.display = 'block';
-    document.getElementById('activity-section').style.display = 'none';
-  } else if (activeTab === 'activity') {
-    document.getElementById('items-section').style.display = 'none';
-    document.getElementById('payments-section').style.display = 'none';
-    document.getElementById('activity-section').style.display = 'block';
-  } else {
-    document.getElementById('items-section').style.display = 'block';
-    document.getElementById('payments-section').style.display = 'block';
-    document.getElementById('activity-section').style.display = 'none';
+  if (newPwd !== confPwd) {
+    errTxt.textContent = 'Passwords do not match.';
+    errBox.style.display = 'flex';
+    return;
   }
 
-  // Render Items Tbody
-  itemsTbody.innerHTML = '';
-  if (filteredItems.length === 0) {
-    itemsTbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 2rem; color: #94a3b8;">No matching inventory items found.</td></tr>`;
-  } else {
-    filteredItems.forEach((item, index) => {
-      const totalVal = item.price ? item.qty * item.price : null;
-      const tr = document.createElement('tr');
-
-      tr.innerHTML = `
-        <td>${index + 1}</td>
-        <td><strong style="color: ${item.person.includes('Dinesh') ? '#2563eb' : '#16a34a'}">${item.person}</strong></td>
-        <td><strong>${item.desc}</strong></td>
-        <td>${item.qty}</td>
-        <td>${item.unit || '-'}</td>
-        <td>${formatCurrency(item.price)}</td>
-        <td><strong>${formatCurrency(totalVal)}</strong></td>
-        <td>
-          <select class="status-select badge badge-${item.status.toLowerCase() === 'acknowledged' ? 'ack' : item.status.toLowerCase()}" data-id="${item.id}">
-            <option value="Pending" ${item.status === 'Pending' ? 'selected' : ''}>Pending</option>
-            <option value="Acknowledged" ${item.status === 'Acknowledged' ? 'selected' : ''}>Acknowledged</option>
-            <option value="Cleared" ${item.status === 'Cleared' ? 'selected' : ''}>Cleared</option>
-          </select>
-        </td>
-        <td>${item.ackBy || '-'}</td>
-        <td>${item.date || '-'}</td>
-        <td>
-          <button class="btn btn-sm btn-secondary edit-item-btn" data-id="${item.id}" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
-          <button class="btn btn-sm btn-secondary delete-item-btn" data-id="${item.id}" title="Delete" style="color:#dc2626"><i class="fa-solid fa-trash"></i></button>
-        </td>
-      `;
-      itemsTbody.appendChild(tr);
-    });
+  if (newPwd === '12345') {
+    errTxt.textContent = 'Cannot use "12345" as your password.';
+    errBox.style.display = 'flex';
+    return;
   }
 
-  // Render Payments Tbody
-  paymentsTbody.innerHTML = '';
-  if (payments.length === 0) {
-    paymentsTbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 1.5rem; color: #94a3b8;">No payment records logged yet. Click "Record Payment" to add one.</td></tr>`;
-  } else {
-    payments.forEach((pay, idx) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${idx + 1}</td>
-        <td>${pay.date}</td>
-        <td><strong>${pay.paidBy}</strong></td>
-        <td><strong style="color: #059669">${formatCurrency(pay.amount)}</strong></td>
-        <td><span class="badge badge-info">${pay.method}</span></td>
-        <td>${pay.notes || '-'}</td>
-        <td>
-          <button class="btn btn-sm btn-secondary delete-pay-btn" data-idx="${idx}" title="Delete" style="color:#dc2626"><i class="fa-solid fa-trash"></i></button>
-        </td>
-      `;
-      paymentsTbody.appendChild(tr);
-    });
-  }
+  errBox.style.display = 'none';
+  usersDB[sessionKey].password  = newPwd;
+  usersDB[sessionKey].isDefault = false;
+  saveUsers(usersDB);
+  logActivity('Password Changed', `${usersDB[sessionKey].name} changed their account password.`);
+  document.getElementById('changepwd-modal').classList.remove('open');
+  saveAll();
+  alert(`Password updated successfully!`);
+});
 
-  // Render Permanent Shared Activity Audit Log (NO DELETE OPTION)
-  if (activityTbody) {
-    activityTbody.innerHTML = '';
-    let filteredLogs = activityLogs;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      filteredLogs = activityLogs.filter(a => a.details.toLowerCase().includes(q) || a.operator.toLowerCase().includes(q) || a.actionType.toLowerCase().includes(q));
-    }
-
-    if (filteredLogs.length === 0) {
-      activityTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 1.5rem; color: #94a3b8;">No activity logs recorded yet.</td></tr>`;
-    } else {
-      filteredLogs.forEach((log, idx) => {
-        const tr = document.createElement('tr');
-        const isDinesh = log.operator.includes('Dinesh');
-        const isMukesh = log.operator.includes('Mukesh');
-        const badgeClass = getActionBadgeClass(log.actionType);
-
-        let operatorTag = `<span class="operator-tag ${isDinesh ? 'operator-dinesh' : (isMukesh ? 'operator-mukesh' : 'operator-guest')}"><i class="fa-solid fa-user-check"></i> ${log.operator}</span>`;
-
-        tr.innerHTML = `
-          <td>${idx + 1}</td>
-          <td><span class="timestamp-sub">${log.timestamp}</span></td>
-          <td>${operatorTag}</td>
-          <td><span class="badge ${badgeClass}">${log.actionType}</span></td>
-          <td>${log.details}</td>
-        `;
-        activityTbody.appendChild(tr);
-      });
-    }
-  }
-};
-
-// Tab Switcher Event Listeners
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+/* =============================================
+   TAB NAVIGATION
+============================================= */
+document.querySelectorAll('.app-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.app-tab').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     activeTab = btn.dataset.tab;
     renderTables();
   });
 });
 
-searchInput.addEventListener('input', (e) => {
-  searchQuery = e.target.value;
+/* =============================================
+   SEARCH & FILTER
+============================================= */
+document.getElementById('search-input').addEventListener('input', (e) => {
+  searchQuery = e.target.value.toLowerCase();
   renderTables();
 });
 
-statusSelectFilter.addEventListener('change', (e) => {
+document.getElementById('status-filter').addEventListener('change', (e) => {
   statusFilter = e.target.value;
   renderTables();
 });
 
-// Inline Status Change Handler
-itemsTbody.addEventListener('change', (e) => {
-  if (e.target.classList.contains('status-select')) {
-    const selectElem = e.target;
-    const id = Number(selectElem.dataset.id);
-    const newStatus = selectElem.value;
-    const item = items.find(i => i.id === id);
+/* =============================================
+   KPI CALCULATIONS
+============================================= */
+function updateKPIs() {
+  const dineshItems = items.filter(i => i.person === 'Dinesh Pachauri');
+  const mukeshItems = items.filter(i => i.person === 'Mukesh Pachauri');
 
-    if (item) {
-      const oldStatus = item.status;
-      item.status = newStatus;
-      if (newStatus === 'Acknowledged' && !item.ackBy) {
-        item.ackBy = getActiveUserName();
-      }
-      logActivity('Status Updated', `Status of '${item.desc}' (${item.person}) changed from '${oldStatus}' to '${newStatus}' by ${getActiveUserName()}`);
-      saveState();
+  const dineshTotal = dineshItems.reduce((s,i) => s + (i.price ? i.qty * i.price : 0), 0);
+  const mukeshTotal = mukeshItems.reduce((s,i) => s + (i.price ? i.qty * i.price : 0), 0);
+
+  const paidByDinesh = payments.filter(p=>p.paidBy==='Dinesh Pachauri').reduce((s,p)=>s+Number(p.amount||0),0);
+  const paidByMukesh = payments.filter(p=>p.paidBy==='Mukesh Pachauri').reduce((s,p)=>s+Number(p.amount||0),0);
+
+  const allPayments = paidByDinesh + paidByMukesh;
+  const netDinesh   = dineshTotal - paidByDinesh;
+  const netMukesh   = mukeshTotal - paidByMukesh;
+  const diff        = netDinesh - netMukesh;
+
+  document.getElementById('kpi-dinesh').textContent      = fmt(dineshTotal);
+  document.getElementById('kpi-dinesh-sub').textContent  = `${dineshItems.length} items`;
+  document.getElementById('kpi-mukesh').textContent      = fmt(mukeshTotal);
+  document.getElementById('kpi-mukesh-sub').textContent  = `${mukeshItems.length} items`;
+  document.getElementById('kpi-payments').textContent    = fmt(allPayments);
+  document.getElementById('kpi-payments-sub').textContent= `${payments.length} payment${payments.length!==1?'s':''}`;
+
+  const balEl  = document.getElementById('kpi-balance');
+  const subEl  = document.getElementById('kpi-balance-sub');
+  const tile   = document.getElementById('kpi-balance-tile');
+
+  if (diff > 0.009) {
+    balEl.textContent = fmt(diff);
+    balEl.style.color = '#dc2626';
+    subEl.textContent = 'Dinesh owes Mukesh';
+    tile.style.borderColor = '#fca5a5';
+  } else if (diff < -0.009) {
+    balEl.textContent = fmt(Math.abs(diff));
+    balEl.style.color = '#2563eb';
+    subEl.textContent = 'Mukesh owes Dinesh';
+    tile.style.borderColor = '#93c5fd';
+  } else {
+    balEl.textContent = 'Balanced ✓';
+    balEl.style.color = '#059669';
+    subEl.textContent = 'No outstanding dues';
+    tile.style.borderColor = '#86efac';
+  }
+}
+
+/* =============================================
+   RENDER TABLES
+============================================= */
+function actionBadge(action) {
+  const map = {
+    'Item Added':    'add',
+    'Item Updated':  'edit',
+    'Status Updated':'status',
+    'Item Deleted':  'delete',
+    'Payment Recorded':'pay',
+    'Payment Deleted':  'delete',
+    'User Logged In':   'auth',
+    'User Logged Out':  'auth',
+    'Password Changed': 'edit',
+  };
+  const cls = map[action] || 'edit';
+  return `<span class="badge badge--${cls}">${action}</span>`;
+}
+
+function operatorChip(name) {
+  const cls = name.includes('Dinesh') ? 'dinesh' : name.includes('Mukesh') ? 'mukesh' : 'other';
+  return `<span class="operator-chip operator-chip--${cls}"><i class="fa-solid fa-user-check"></i> ${name}</span>`;
+}
+
+function renderTables() {
+  // Decide which views are visible
+  const showItems    = (activeTab === 'all' || activeTab === 'dinesh' || activeTab === 'mukesh');
+  const showPayments = (activeTab === 'all' || activeTab === 'payments');
+  const showActivity = (activeTab === 'activity');
+
+  document.getElementById('view-items').style.display    = showItems    ? 'block' : 'none';
+  document.getElementById('view-payments').style.display = showPayments ? 'block' : 'none';
+  document.getElementById('view-activity').style.display = showActivity ? 'block' : 'none';
+
+  /* --- ITEMS --- */
+  let filtered = items.filter(item => {
+    if (activeTab === 'dinesh' && item.person !== 'Dinesh Pachauri') return false;
+    if (activeTab === 'mukesh' && item.person !== 'Mukesh Pachauri') return false;
+    if (statusFilter !== 'all' && item.status !== statusFilter) return false;
+    if (searchQuery) {
+      const q = searchQuery;
+      return item.desc.toLowerCase().includes(q) ||
+             (item.notes||'').toLowerCase().includes(q) ||
+             (item.ackBy||'').toLowerCase().includes(q) ||
+             item.person.toLowerCase().includes(q);
     }
+    return true;
+  });
+
+  document.getElementById('filter-count').textContent = `${filtered.length} record${filtered.length!==1?'s':''}`;
+
+  const tbody = document.getElementById('items-tbody');
+  tbody.innerHTML = '';
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="11"><i class="fa-solid fa-inbox" style="font-size:1.5rem; color:#cbd5e1; display:block; margin-bottom:0.5rem"></i>No items match the current filter.</td></tr>`;
+  } else {
+    filtered.forEach((item, idx) => {
+      const total    = item.price != null ? item.qty * item.price : null;
+      const stBadge  = item.status === 'Acknowledged' ? 'acknowledged' : item.status.toLowerCase();
+      const personCls= item.person.includes('Dinesh') ? 'chip-dinesh' : 'chip-mukesh';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${idx+1}</td>
+        <td><span class="${personCls}">${item.person}</span></td>
+        <td><strong>${item.desc}</strong></td>
+        <td>${item.qty}</td>
+        <td>${item.unit||'—'}</td>
+        <td>${fmt(item.price)}</td>
+        <td><strong>${fmt(total)}</strong></td>
+        <td>
+          <select class="status-inline" data-id="${item.id}">
+            <option ${item.status==='Pending'     ?'selected':''}>Pending</option>
+            <option ${item.status==='Acknowledged'?'selected':''}>Acknowledged</option>
+            <option ${item.status==='Cleared'     ?'selected':''}>Cleared</option>
+          </select>
+        </td>
+        <td>${item.ackBy||'—'}</td>
+        <td>${item.date||'—'}</td>
+        <td>
+          <button class="tbl-btn edit-item-btn" data-id="${item.id}" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+          <button class="tbl-btn tbl-btn--red del-item-btn" data-id="${item.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* --- PAYMENTS --- */
+  const ptbody = document.getElementById('payments-tbody');
+  ptbody.innerHTML = '';
+  if (payments.length === 0) {
+    ptbody.innerHTML = `<tr class="empty-row"><td colspan="7"><i class="fa-solid fa-receipt" style="font-size:1.5rem; color:#cbd5e1; display:block; margin-bottom:0.5rem"></i>No payments recorded yet.</td></tr>`;
+  } else {
+    payments.forEach((p, idx) => {
+      const pCls = p.paidBy.includes('Dinesh') ? 'chip-dinesh' : 'chip-mukesh';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${idx+1}</td>
+        <td>${p.date}</td>
+        <td><span class="${pCls}">${p.paidBy}</span></td>
+        <td><strong style="color:#059669">${fmt(p.amount)}</strong></td>
+        <td><span class="badge badge--pay">${p.method}</span></td>
+        <td>${p.notes||'—'}</td>
+        <td><button class="tbl-btn tbl-btn--red del-pay-btn" data-idx="${idx}" title="Delete"><i class="fa-solid fa-trash"></i></button></td>`;
+      ptbody.appendChild(tr);
+    });
+  }
+
+  /* --- ACTIVITY AUDIT LOG (immutable, no delete) --- */
+  const atbody = document.getElementById('activity-tbody');
+  atbody.innerHTML = '';
+  let filteredLogs = activityLogs;
+  if (searchQuery) {
+    filteredLogs = activityLogs.filter(a =>
+      a.details.toLowerCase().includes(searchQuery) ||
+      a.operator.toLowerCase().includes(searchQuery) ||
+      a.action.toLowerCase().includes(searchQuery)
+    );
+  }
+
+  if (filteredLogs.length === 0) {
+    atbody.innerHTML = `<tr class="empty-row"><td colspan="5">No activity logged yet.</td></tr>`;
+  } else {
+    filteredLogs.forEach((log, idx) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${idx+1}</td>
+        <td style="white-space:nowrap; font-family:monospace; font-size:0.78rem; color:#64748b">${log.ts}</td>
+        <td>${operatorChip(log.operator)}</td>
+        <td>${actionBadge(log.action)}</td>
+        <td>${log.details}</td>`;
+      atbody.appendChild(tr);
+    });
+  }
+}
+
+/* =============================================
+   INLINE STATUS CHANGE
+============================================= */
+document.getElementById('items-tbody').addEventListener('change', (e) => {
+  if (!e.target.classList.contains('status-inline')) return;
+  const id        = Number(e.target.dataset.id);
+  const item      = items.find(i => i.id === id);
+  if (!item) return;
+  const oldStatus = item.status;
+  item.status     = e.target.value;
+  if (item.status === 'Acknowledged' && !item.ackBy) {
+    item.ackBy = activeUser();
+  }
+  logActivity('Status Updated', `"${item.desc}" status changed from ${oldStatus} → ${item.status} (${item.person})`);
+  saveAll();
+});
+
+/* =============================================
+   ITEMS TABLE — EDIT / DELETE
+============================================= */
+document.getElementById('items-tbody').addEventListener('click', (e) => {
+  const editBtn = e.target.closest('.edit-item-btn');
+  const delBtn  = e.target.closest('.del-item-btn');
+
+  if (editBtn) {
+    const id   = Number(editBtn.dataset.id);
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    document.getElementById('item-id').value          = item.id;
+    document.getElementById('item-person').value      = item.person;
+    document.getElementById('item-desc').value        = item.desc;
+    document.getElementById('item-qty').value         = item.qty;
+    document.getElementById('item-unit').value        = item.unit || '';
+    document.getElementById('item-price').value       = item.price != null ? item.price : '';
+    document.getElementById('item-status').value      = item.status;
+    document.getElementById('item-ack').value         = item.ackBy || '';
+    document.getElementById('item-date').value        = item.date || '';
+    document.getElementById('item-notes').value       = item.notes || '';
+    document.getElementById('item-modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edit Inventory Item';
+    document.getElementById('item-modal').classList.add('open');
+  }
+
+  if (delBtn) {
+    const id   = Number(delBtn.dataset.id);
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    if (!confirm(`Delete "${item.desc}"? This cannot be undone.`)) return;
+    logActivity('Item Deleted', `Deleted: "${item.desc}" (${item.person}, Qty:${item.qty}, Value:${fmt(item.price ? item.qty*item.price : null)})`);
+    items = items.filter(i => i.id !== id);
+    saveAll();
   }
 });
 
-// Modal Elements
-const itemModal = document.getElementById('item-modal');
-const paymentModal = document.getElementById('payment-modal');
-
+/* =============================================
+   ADD / EDIT ITEM MODAL
+============================================= */
 document.getElementById('add-item-btn').addEventListener('click', () => {
   document.getElementById('item-form').reset();
   document.getElementById('item-id').value = '';
-  document.getElementById('item-modal-title').innerHTML = '<i class="fa-solid fa-box-open"></i> Add New Inventory Item';
+  document.getElementById('item-modal-title').innerHTML = '<i class="fa-solid fa-box-open"></i> Add Inventory Item';
   document.getElementById('item-date').value = new Date().toISOString().split('T')[0];
-  itemModal.classList.add('active');
+  document.getElementById('item-modal').classList.add('open');
 });
 
+document.getElementById('close-item-modal').addEventListener('click', () => {
+  document.getElementById('item-modal').classList.remove('open');
+});
+
+document.getElementById('cancel-item-modal').addEventListener('click', () => {
+  document.getElementById('item-modal').classList.remove('open');
+});
+
+document.getElementById('item-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const idVal  = document.getElementById('item-id').value;
+  const person = document.getElementById('item-person').value;
+  const desc   = document.getElementById('item-desc').value;
+  const qty    = Number(document.getElementById('item-qty').value);
+  const unit   = document.getElementById('item-unit').value;
+  const priceRaw = document.getElementById('item-price').value;
+  const price  = priceRaw !== '' ? Number(priceRaw) : null;
+  const status = document.getElementById('item-status').value;
+  const ackBy  = document.getElementById('item-ack').value;
+  const date   = document.getElementById('item-date').value;
+  const notes  = document.getElementById('item-notes').value;
+
+  if (idVal) {
+    const item = items.find(i => i.id === Number(idVal));
+    if (item) {
+      Object.assign(item, {person, desc, qty, unit, price, status, ackBy, date, notes});
+      logActivity('Item Updated', `Updated: "${desc}" (${person}, Qty:${qty}, Price:${fmt(price)})`);
+    }
+  } else {
+    items.push({id: nextId(items), person, desc, qty, unit, price, status, ackBy, date, notes});
+    logActivity('Item Added', `Added: "${desc}" taken by ${person} — Qty: ${qty} ${unit||''} @ ${fmt(price)}/unit`);
+  }
+
+  document.getElementById('item-modal').classList.remove('open');
+  saveAll();
+});
+
+/* =============================================
+   PAYMENT MODAL
+============================================= */
 document.getElementById('add-payment-btn').addEventListener('click', () => {
   document.getElementById('payment-form').reset();
   document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
-  paymentModal.classList.add('active');
+  document.getElementById('payment-modal').classList.add('open');
 });
 
-document.getElementById('add-payment-btn-inline').addEventListener('click', () => {
-  document.getElementById('payment-form').reset();
-  document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
-  paymentModal.classList.add('active');
-});
-
-document.querySelectorAll('.close-modal').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    if (isForcedPasswordChange && (btn.id === 'close-pwd-modal-btn' || btn.id === 'cancel-pwd-btn')) {
-      alert('You must change your default password "12345" before proceeding.');
-      return;
-    }
-    itemModal.classList.remove('active');
-    paymentModal.classList.remove('active');
-    changePwdModal.classList.remove('active');
+if (document.getElementById('add-payment-inline')) {
+  document.getElementById('add-payment-inline').addEventListener('click', () => {
+    document.getElementById('payment-form').reset();
+    document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('payment-modal').classList.add('open');
   });
+}
+
+document.getElementById('close-payment-modal').addEventListener('click', () => {
+  document.getElementById('payment-modal').classList.remove('open');
 });
 
-// Add / Edit Item Form Submission
-document.getElementById('item-form').addEventListener('submit', (e) => {
-  e.preventDefault();
-  const idVal = document.getElementById('item-id').value;
-  const person = document.getElementById('item-person').value;
-  const desc = document.getElementById('item-desc').value;
-  const qty = Number(document.getElementById('item-qty').value);
-  const unit = document.getElementById('item-unit').value;
-  const priceVal = document.getElementById('item-price').value;
-  const price = priceVal !== '' ? Number(priceVal) : null;
-  const status = document.getElementById('item-status').value;
-  const ackBy = document.getElementById('item-ack').value;
-  const date = document.getElementById('item-date').value;
-  const notes = document.getElementById('item-notes').value;
-
-  if (idVal) {
-    // Edit existing
-    const item = items.find(i => i.id === Number(idVal));
-    if (item) {
-      Object.assign(item, { person, desc, qty, unit, price, status, ackBy, date, notes });
-      logActivity('Item Updated', `Updated item details for '${desc}' (Taken by ${person}, Qty: ${qty}, Price: ${formatCurrency(price)})`);
-    }
-  } else {
-    // Add new
-    const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
-    items.push({ id: newId, person, desc, qty, unit, price, status, ackBy, date, notes });
-    logActivity('Item Added', `Added item '${desc}' (Qty: ${qty} ${unit || ''}) taken by ${person} at ${formatCurrency(price)}/unit`);
-  }
-
-  itemModal.classList.remove('active');
-  saveState();
+document.getElementById('cancel-payment-modal').addEventListener('click', () => {
+  document.getElementById('payment-modal').classList.remove('open');
 });
 
-// Edit & Delete Item Buttons
-itemsTbody.addEventListener('click', (e) => {
-  const editBtn = e.target.closest('.edit-item-btn');
-  const deleteBtn = e.target.closest('.delete-item-btn');
-
-  if (editBtn) {
-    const id = Number(editBtn.dataset.id);
-    const item = items.find(i => i.id === id);
-    if (item) {
-      document.getElementById('item-id').value = item.id;
-      document.getElementById('item-person').value = item.person;
-      document.getElementById('item-desc').value = item.desc;
-      document.getElementById('item-qty').value = item.qty;
-      document.getElementById('item-unit').value = item.unit || '';
-      document.getElementById('item-price').value = item.price !== null ? item.price : '';
-      document.getElementById('item-status').value = item.status;
-      document.getElementById('item-ack').value = item.ackBy || '';
-      document.getElementById('item-date').value = item.date || '';
-      document.getElementById('item-notes').value = item.notes || '';
-      document.getElementById('item-modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edit Inventory Item';
-      itemModal.classList.add('active');
-    }
-  }
-
-  if (deleteBtn) {
-    const id = Number(deleteBtn.dataset.id);
-    const item = items.find(i => i.id === id);
-    if (item && confirm(`Are you sure you want to delete '${item.desc}'?`)) {
-      logActivity('Item Deleted', `Deleted inventory item '${item.desc}' (Taken by ${item.person}, Value: ${formatCurrency(item.price ? item.qty * item.price : null)})`);
-      items = items.filter(i => i.id !== id);
-      saveState();
-    }
-  }
-});
-
-// Record Payment Submission
 document.getElementById('payment-form').addEventListener('submit', (e) => {
   e.preventDefault();
-  const date = document.getElementById('pay-date').value;
+  const date   = document.getElementById('pay-date').value;
   const paidBy = document.getElementById('pay-by').value;
   const amount = Number(document.getElementById('pay-amount').value);
   const method = document.getElementById('pay-method').value;
-  const notes = document.getElementById('pay-notes').value;
+  const notes  = document.getElementById('pay-notes').value;
 
-  payments.push({ date, paidBy, amount, method, notes });
-  logActivity('Payment Recorded', `Recorded payment transfer of ${formatCurrency(amount)} paid by ${paidBy} via ${method}`);
-  paymentModal.classList.remove('active');
-  saveState();
+  payments.push({date, paidBy, amount, method, notes});
+  logActivity('Payment Recorded', `${paidBy} paid ${fmt(amount)} via ${method}${notes?' — '+notes:''}`);
+  document.getElementById('payment-modal').classList.remove('open');
+  saveAll();
 });
 
-// Delete Payment
-paymentsTbody.addEventListener('click', (e) => {
-  const deleteBtn = e.target.closest('.delete-pay-btn');
-  if (deleteBtn) {
-    const idx = Number(deleteBtn.dataset.idx);
-    const pay = payments[idx];
-    if (pay && confirm('Delete this payment record?')) {
-      logActivity('Payment Deleted', `Deleted payment record of ${formatCurrency(pay.amount)} paid by ${pay.paidBy}`);
-      payments.splice(idx, 1);
-      saveState();
-    }
-  }
+/* =============================================
+   DELETE PAYMENT
+============================================= */
+document.getElementById('payments-tbody').addEventListener('click', (e) => {
+  const delBtn = e.target.closest('.del-pay-btn');
+  if (!delBtn) return;
+  const idx = Number(delBtn.dataset.idx);
+  const p   = payments[idx];
+  if (!p) return;
+  if (!confirm('Delete this payment record?')) return;
+  logActivity('Payment Deleted', `Deleted payment: ${fmt(p.amount)} by ${p.paidBy} on ${p.date}`);
+  payments.splice(idx, 1);
+  saveAll();
 });
 
-// Export to Excel Button including Permanent Activity Audit Sheet
-document.getElementById('export-excel-btn').addEventListener('click', () => {
+/* =============================================
+   EXPORT TO EXCEL
+============================================= */
+document.getElementById('export-btn').addEventListener('click', () => {
   const wb = XLSX.utils.book_new();
 
-  // Dinesh Items
-  const dineshRows = items.filter(i => i.person === 'Dinesh Pachauri').map((i, idx) => ({
-    "#": idx + 1,
-    "Item Description": i.desc,
-    "Qty": i.qty,
-    "Unit/Pack": i.unit,
-    "Price per Unit": i.price,
-    "Total Value": i.price ? i.qty * i.price : '',
-    "Status": i.status,
-    "Acknowledged By": i.ackBy,
-    "Notes": i.notes,
-    "Date": i.date
+  const dineshRows = items.filter(i=>i.person==='Dinesh Pachauri').map((i,x)=>({
+    '#':x+1, 'Item':i.desc, 'Qty':i.qty, 'Unit':i.unit, 'Price':i.price,
+    'Total':i.price?i.qty*i.price:'', 'Status':i.status, 'Ack By':i.ackBy, 'Date':i.date, 'Notes':i.notes
+  }));
+  const mukeshRows = items.filter(i=>i.person==='Mukesh Pachauri').map((i,x)=>({
+    '#':x+1, 'Item':i.desc, 'Qty':i.qty, 'Unit':i.unit, 'Price':i.price,
+    'Total':i.price?i.qty*i.price:'', 'Status':i.status, 'Ack By':i.ackBy, 'Date':i.date, 'Notes':i.notes
+  }));
+  const payRows = payments.map((p,x)=>({
+    '#':x+1, 'Date':p.date, 'Paid By':p.paidBy, 'Amount':p.amount, 'Method':p.method, 'Notes':p.notes
+  }));
+  const logRows = activityLogs.map((a,x)=>({
+    '#':x+1, 'Timestamp':a.ts, 'Operator':a.operator, 'Action':a.action, 'Details':a.details
   }));
 
-  // Mukesh Items
-  const mukeshRows = items.filter(i => i.person === 'Mukesh Pachauri').map((i, idx) => ({
-    "#": idx + 1,
-    "Item Description": i.desc,
-    "Qty": i.qty,
-    "Unit/Pack": i.unit,
-    "Price per Unit": i.price,
-    "Total Value": i.price ? i.qty * i.price : '',
-    "Status": i.status,
-    "Acknowledged By": i.ackBy,
-    "Notes": i.notes,
-    "Date": i.date
-  }));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dineshRows), 'Dinesh Items');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(mukeshRows), 'Mukesh Items');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(payRows),    'Payments');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(logRows),    'Audit Log');
 
-  const payRows = payments.map((p, idx) => ({
-    "#": idx + 1,
-    "Date": p.date,
-    "Paid By": p.paidBy,
-    "Amount Paid": p.amount,
-    "Payment Method": p.method,
-    "Notes": p.notes
-  }));
-
-  const actRows = activityLogs.map((a, idx) => ({
-    "#": idx + 1,
-    "Timestamp": a.timestamp,
-    "Logged In User": a.operator,
-    "Action Type": a.actionType,
-    "Details": a.details
-  }));
-
-  const wsDinesh = XLSX.utils.json_to_sheet(dineshRows);
-  const wsMukesh = XLSX.utils.json_to_sheet(mukeshRows);
-  const wsPayments = XLSX.utils.json_to_sheet(payRows);
-  const wsActivities = XLSX.utils.json_to_sheet(actRows);
-
-  XLSX.utils.book_append_sheet(wb, wsDinesh, "Dinesh Items");
-  XLSX.utils.book_append_sheet(wb, wsMukesh, "Mukesh Items");
-  XLSX.utils.book_append_sheet(wb, wsPayments, "Payments");
-  XLSX.utils.book_append_sheet(wb, wsActivities, "Shared Activity Audit Log");
-
-  XLSX.writeFile(wb, "Pachauri_Inventory_Export.xlsx");
+  XLSX.writeFile(wb, `Pachauri_Ledger_${new Date().toISOString().split('T')[0]}.xlsx`);
 });
 
-// Initial Render
+/* =============================================
+   INIT
+============================================= */
 updateKPIs();
-checkAuthScreen();
+checkSession();
 renderTables();

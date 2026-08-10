@@ -4,171 +4,219 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pachauri Inventory & Balance Ledger</title>
-  <!-- Google Fonts & Font Awesome Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- SheetJS for client-side Excel Export -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- FULL SCREEN MANDATORY LOGIN SCREEN OVERLAY -->
-  <div id="login-screen" class="login-screen-overlay">
-    <div class="login-box-card">
-      <div class="login-header">
-        <div class="login-logo"><i class="fa-solid fa-boxes-stacked"></i></div>
-        <h2>Pachauri Inventory Ledger</h2>
-        <p>Select your account & enter password to sign in</p>
+
+  <!-- ================================================
+       MANDATORY LOGIN SCREEN — blocks app until signed in
+  ================================================ -->
+  <div id="login-screen">
+    <div class="login-card">
+      <!-- Branding -->
+      <div class="login-brand">
+        <div class="login-brand-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+        <h1>Pachauri Ledger</h1>
+        <p>Inventory & Balance Tracker</p>
       </div>
 
-      <!-- Quick User Account Switcher Buttons -->
-      <div class="account-picker-tabs">
-        <button type="button" class="account-tab-btn active" data-user="dinesh">
-          <i class="fa-solid fa-user-check"></i> Dinesh Pachauri
-        </button>
-        <button type="button" class="account-tab-btn" data-user="mukesh">
-          <i class="fa-solid fa-user-check"></i> Mukesh Pachauri
-        </button>
+      <!-- Who are you? -->
+      <div class="login-who">
+        <p class="who-label">Who are you?</p>
+        <div class="who-buttons">
+          <button type="button" id="who-dinesh" class="who-btn who-btn--active" data-key="dinesh">
+            <i class="fa-solid fa-user"></i>
+            <span>Dinesh Pachauri</span>
+          </button>
+          <button type="button" id="who-mukesh" class="who-btn" data-key="mukesh">
+            <i class="fa-solid fa-user"></i>
+            <span>Mukesh Pachauri</span>
+          </button>
+        </div>
       </div>
 
+      <!-- Password Field -->
       <form id="login-form">
-        <input type="hidden" id="login-user-key" value="dinesh">
-
-        <div class="form-group full-width" style="margin-bottom: 1.2rem;">
-          <label><i class="fa-solid fa-key"></i> Password for <span id="selected-account-label">Dinesh Pachauri</span> *</label>
-          <input type="password" id="login-password" class="form-input login-input" placeholder="Enter password (default: 12345)" value="12345" required>
-          <span class="input-hint"><i class="fa-solid fa-info-circle"></i> Initial default password: <strong>12345</strong></span>
+        <input type="hidden" id="selected-user-key" value="dinesh">
+        <div class="login-field">
+          <label class="login-field-label" for="login-password">
+            <i class="fa-solid fa-lock"></i> Password
+          </label>
+          <div class="password-input-wrap">
+            <input type="password" id="login-password" class="login-input" placeholder="Enter your password" autocomplete="current-password" required>
+            <button type="button" id="toggle-pwd-visibility" class="toggle-eye" title="Show/Hide password">
+              <i class="fa-solid fa-eye" id="eye-icon"></i>
+            </button>
+          </div>
+          <p class="login-hint">Default first-time password: <code>12345</code></p>
         </div>
 
-        <div id="login-error-msg" class="alert-error-box" style="display: none; margin-bottom: 1rem;">
-          <i class="fa-solid fa-circle-exclamation"></i> Incorrect password. Please try password <strong>12345</strong> or click reset below.
+        <div id="login-error" class="login-error" style="display:none">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="login-error-text">Incorrect password. Please try again.</span>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block" id="login-submit-btn"><i class="fa-solid fa-right-to-bracket"></i> Sign In to Account</button>
-        
-        <div style="text-align: center; margin-top: 1.2rem;">
-          <button type="button" id="reset-creds-btn" class="text-link-btn"><i class="fa-solid fa-rotate-left"></i> Reset Passwords to Default (12345)</button>
+        <button type="submit" id="login-submit-btn" class="btn-login">
+          <i class="fa-solid fa-right-to-bracket"></i> Sign In
+        </button>
+      </form>
+
+      <p class="login-footer-note">
+        <i class="fa-solid fa-shield-halved"></i>
+        Authorized users only. All actions are permanently logged.
+      </p>
+    </div>
+  </div>
+
+  <!-- ================================================
+       FORCED PASSWORD CHANGE MODAL
+       (shown when logging in with default 12345)
+  ================================================ -->
+  <div id="pwd-change-screen" style="display:none">
+    <div class="pwdchange-card">
+      <div class="pwdchange-icon"><i class="fa-solid fa-user-shield"></i></div>
+      <h2 id="pwd-change-title">Set Your Password</h2>
+      <p id="pwd-change-subtitle">You are using the default password. Set a personal password to continue.</p>
+
+      <form id="pwd-change-form">
+        <div class="login-field">
+          <label class="login-field-label"><i class="fa-solid fa-key"></i> New Password</label>
+          <input type="password" id="new-pwd" class="login-input" placeholder="Enter new password (min 4 chars)" minlength="4" required>
         </div>
+        <div class="login-field">
+          <label class="login-field-label"><i class="fa-solid fa-key"></i> Confirm New Password</label>
+          <input type="password" id="confirm-pwd" class="login-input" placeholder="Re-enter new password" minlength="4" required>
+        </div>
+        <div id="pwd-change-error" class="login-error" style="display:none">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="pwd-change-error-text">Passwords do not match.</span>
+        </div>
+        <button type="submit" class="btn-login">
+          <i class="fa-solid fa-check-circle"></i> Save Password & Enter
+        </button>
       </form>
     </div>
   </div>
 
-  <!-- MAIN APP CONTAINER (BLOCKED UNTIL LOGIN) -->
-  <div class="app-container" id="app-container" style="display: none;">
+  <!-- ================================================
+       MAIN APP — hidden until authenticated
+  ================================================ -->
+  <div id="app" style="display:none">
     <!-- Top Header -->
-    <header class="main-header">
-      <div class="header-content">
-        <div class="brand">
-          <i class="fa-solid fa-boxes-stacked brand-icon"></i>
+    <header class="app-header">
+      <div class="header-inner">
+        <div class="header-brand">
+          <i class="fa-solid fa-boxes-stacked header-logo-icon"></i>
           <div>
-            <h1>Pachauri Inventory & Balance Ledger</h1>
-            <p>Authorized Tracking & Immutable Audit Log</p>
+            <div class="header-brand-title">Pachauri Inventory & Balance Ledger</div>
+            <div class="header-brand-sub">Real-time Tracking · Immutable Audit Log</div>
           </div>
         </div>
 
-        <div class="header-right">
-          <!-- Logged-in User Session Bar -->
-          <div class="auth-session-box">
-            <div class="auth-user-tag" id="logged-user-display">
-              <span class="status-dot"></span>
-              <span id="user-display-name">Dinesh Pachauri</span>
-            </div>
-            <button id="change-pwd-btn" class="btn btn-secondary btn-sm" title="Change Password"><i class="fa-solid fa-key"></i> Password</button>
-            <button id="logout-btn" class="btn btn-logout" title="Logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+        <div class="header-user-bar">
+          <div class="header-user-pill">
+            <span class="header-user-dot"></span>
+            <span id="header-user-name">Dinesh Pachauri</span>
           </div>
+          <button id="change-pwd-btn" class="header-btn" title="Change Password">
+            <i class="fa-solid fa-key"></i> Password
+          </button>
+          <button id="logout-btn" class="header-btn header-btn--danger" title="Logout">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+          </button>
+        </div>
+      </div>
 
-          <div class="header-actions">
-            <button id="add-item-btn" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Item</button>
-            <button id="add-payment-btn" class="btn btn-success"><i class="fa-solid fa-hand-holding-dollar"></i> Record Payment</button>
-            <button id="export-excel-btn" class="btn btn-secondary"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
-          </div>
+      <div class="header-actions-bar">
+        <div class="header-tabs">
+          <button class="app-tab active" data-tab="all"><i class="fa-solid fa-list"></i> All Items</button>
+          <button class="app-tab" data-tab="dinesh"><i class="fa-solid fa-user"></i> Dinesh</button>
+          <button class="app-tab" data-tab="mukesh"><i class="fa-solid fa-user"></i> Mukesh</button>
+          <button class="app-tab" data-tab="payments"><i class="fa-solid fa-receipt"></i> Payments</button>
+          <button class="app-tab" data-tab="activity"><i class="fa-solid fa-clock-rotate-left"></i> Audit Log</button>
+        </div>
+        <div class="header-toolbar">
+          <button class="tool-btn" id="add-item-btn"><i class="fa-solid fa-plus"></i> Add Item</button>
+          <button class="tool-btn tool-btn--green" id="add-payment-btn"><i class="fa-solid fa-hand-holding-dollar"></i> Payment</button>
+          <button class="tool-btn tool-btn--ghost" id="export-btn"><i class="fa-solid fa-file-excel"></i> Export</button>
         </div>
       </div>
     </header>
 
-    <!-- KPI Summary Banners -->
-    <section class="kpi-grid">
-      <div class="kpi-card kpi-dinesh">
-        <div class="kpi-icon"><i class="fa-solid fa-user-tag"></i></div>
-        <div class="kpi-details">
-          <span class="kpi-title">Dinesh's Total Items</span>
-          <span id="kpi-dinesh-total" class="kpi-value">₹0.00</span>
-          <span id="kpi-dinesh-count" class="kpi-subtext">0 Items Recorded</span>
+    <!-- KPI Strip -->
+    <section class="kpi-strip">
+      <div class="kpi-tile kpi-tile--blue">
+        <div class="kpi-tile-icon"><i class="fa-solid fa-user"></i></div>
+        <div class="kpi-tile-body">
+          <span class="kpi-tile-label">Dinesh's Items Total</span>
+          <span class="kpi-tile-value" id="kpi-dinesh">₹0.00</span>
+          <span class="kpi-tile-sub" id="kpi-dinesh-sub">0 items</span>
         </div>
       </div>
-
-      <div class="kpi-card kpi-mukesh">
-        <div class="kpi-icon"><i class="fa-solid fa-user-check"></i></div>
-        <div class="kpi-details">
-          <span class="kpi-title">Mukesh's Total Items</span>
-          <span id="kpi-mukesh-total" class="kpi-value">₹0.00</span>
-          <span id="kpi-mukesh-count" class="kpi-subtext">0 Items Recorded</span>
+      <div class="kpi-tile kpi-tile--green">
+        <div class="kpi-tile-icon"><i class="fa-solid fa-user"></i></div>
+        <div class="kpi-tile-body">
+          <span class="kpi-tile-label">Mukesh's Items Total</span>
+          <span class="kpi-tile-value" id="kpi-mukesh">₹0.00</span>
+          <span class="kpi-tile-sub" id="kpi-mukesh-sub">0 items</span>
         </div>
       </div>
-
-      <div class="kpi-card kpi-payments">
-        <div class="kpi-icon"><i class="fa-solid fa-money-bill-transfer"></i></div>
-        <div class="kpi-details">
-          <span class="kpi-title">Total Payments Settled</span>
-          <span id="kpi-payments-total" class="kpi-value">₹0.00</span>
-          <span id="kpi-payments-count" class="kpi-subtext">0 Transfers</span>
+      <div class="kpi-tile kpi-tile--amber">
+        <div class="kpi-tile-icon"><i class="fa-solid fa-money-bill-transfer"></i></div>
+        <div class="kpi-tile-body">
+          <span class="kpi-tile-label">Payments Settled</span>
+          <span class="kpi-tile-value" id="kpi-payments">₹0.00</span>
+          <span class="kpi-tile-sub" id="kpi-payments-sub">0 payments</span>
         </div>
       </div>
-
-      <div class="kpi-card kpi-status" id="net-balance-card">
-        <div class="kpi-icon"><i class="fa-solid fa-scale-balanced"></i></div>
-        <div class="kpi-details">
-          <span class="kpi-title">Net Balance Status</span>
-          <span id="kpi-balance-text" class="kpi-value-lg">Calculating...</span>
-          <span id="kpi-balance-sub" class="kpi-subtext">Automated Difference</span>
+      <div class="kpi-tile kpi-tile--balance" id="kpi-balance-tile">
+        <div class="kpi-tile-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+        <div class="kpi-tile-body">
+          <span class="kpi-tile-label">Net Balance</span>
+          <span class="kpi-tile-value" id="kpi-balance">—</span>
+          <span class="kpi-tile-sub" id="kpi-balance-sub">Calculating...</span>
         </div>
       </div>
     </section>
 
-    <!-- Controls & Filter Bar -->
-    <section class="control-bar">
-      <div class="tab-group">
-        <button class="tab-btn active" data-tab="all"><i class="fa-solid fa-list-ul"></i> All Entries</button>
-        <button class="tab-btn" data-tab="dinesh"><i class="fa-solid fa-user"></i> Dinesh Pachauri</button>
-        <button class="tab-btn" data-tab="mukesh"><i class="fa-solid fa-user"></i> Mukesh Pachauri</button>
-        <button class="tab-btn" data-tab="payments"><i class="fa-solid fa-receipt"></i> Payment Log</button>
-        <button class="tab-btn" data-tab="activity"><i class="fa-solid fa-clock-rotate-left"></i> Shared Activity Audit Log</button>
+    <!-- Search & Filter Bar -->
+    <div class="filter-bar">
+      <div class="filter-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="search-input" placeholder="Search items, notes, activity...">
       </div>
+      <select id="status-filter" class="filter-select">
+        <option value="all">All Statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="Acknowledged">Acknowledged</option>
+        <option value="Cleared">Cleared</option>
+      </select>
+      <span class="filter-count" id="filter-count">— records</span>
+    </div>
 
-      <div class="filter-group">
-        <div class="search-box">
-          <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text" id="search-input" placeholder="Search item, notes, activity...">
-        </div>
-        <select id="status-filter" class="form-select">
-          <option value="all">All Statuses</option>
-          <option value="Pending">Pending</option>
-          <option value="Acknowledged">Acknowledged</option>
-          <option value="Cleared">Cleared</option>
-        </select>
-      </div>
-    </section>
+    <!-- Content Views -->
+    <main class="main-content">
 
-    <!-- Main Content Area -->
-    <main class="content-area">
-      <!-- Items Table Container -->
-      <div id="items-section" class="table-card">
-        <div class="card-header">
-          <h2 id="section-title"><i class="fa-solid fa-box"></i> Inventory Items Ledger</h2>
-          <span class="badge badge-info" id="record-count">13 Items</span>
+      <!-- ITEMS TABLE VIEW -->
+      <div id="view-items" class="view-card">
+        <div class="view-card-header">
+          <h2><i class="fa-solid fa-box"></i> Inventory Items Ledger</h2>
         </div>
-        <div class="table-responsive">
-          <table class="data-table" id="items-table">
+        <div class="table-wrap">
+          <table class="ledger-table" id="items-table">
             <thead>
               <tr>
                 <th>#</th>
                 <th>Taken By</th>
                 <th>Item Description</th>
                 <th>Qty</th>
-                <th>Unit/Pack</th>
-                <th>Price/Unit</th>
+                <th>Unit / Pack</th>
+                <th>Price / Unit</th>
                 <th>Total Value</th>
                 <th>Status</th>
                 <th>Acknowledged By</th>
@@ -176,225 +224,195 @@
                 <th>Actions</th>
               </tr>
             </thead>
-            <tbody id="items-tbody">
-              <!-- Rendered dynamically -->
-            </tbody>
+            <tbody id="items-tbody"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- Payment Section Container -->
-      <div id="payments-section" class="table-card" style="margin-top: 1.5rem;">
-        <div class="card-header">
-          <h2><i class="fa-solid fa-money-bill-wave"></i> Payment Tracking Log</h2>
-          <button class="btn btn-sm btn-success" id="add-payment-btn-inline"><i class="fa-solid fa-plus"></i> New Payment</button>
+      <!-- PAYMENTS TABLE VIEW -->
+      <div id="view-payments" class="view-card" style="display:none">
+        <div class="view-card-header">
+          <h2><i class="fa-solid fa-money-bill-wave"></i> Payment Transfer Log</h2>
+          <button class="tool-btn tool-btn--green" id="add-payment-inline"><i class="fa-solid fa-plus"></i> New Payment</button>
         </div>
-        <div class="table-responsive">
-          <table class="data-table" id="payments-table">
+        <div class="table-wrap">
+          <table class="ledger-table" id="payments-table">
             <thead>
               <tr>
                 <th>#</th>
                 <th>Date</th>
                 <th>Paid By</th>
-                <th>Amount Paid</th>
-                <th>Payment Method</th>
+                <th>Amount</th>
+                <th>Method</th>
                 <th>Notes</th>
                 <th>Actions</th>
               </tr>
             </thead>
-            <tbody id="payments-tbody">
-              <!-- Rendered dynamically -->
-            </tbody>
+            <tbody id="payments-tbody"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- Activity Audit Log Section (PERMANENT IMMUTABLE LOG - NO DELETE BUTTON) -->
-      <div id="activity-section" class="table-card" style="margin-top: 1.5rem;">
-        <div class="card-header">
-          <h2><i class="fa-solid fa-shield-halved"></i> Shared Activity & Security Audit Log</h2>
-          <span class="badge badge-info" id="activity-count">0 Activities Logged</span>
+      <!-- AUDIT LOG VIEW -->
+      <div id="view-activity" class="view-card" style="display:none">
+        <div class="view-card-header">
+          <h2><i class="fa-solid fa-shield-halved"></i> Shared Activity Audit Log</h2>
+          <span class="audit-immutable-tag"><i class="fa-solid fa-lock"></i> Immutable — No Deletion Allowed</span>
         </div>
-        <div class="table-responsive">
-          <table class="data-table" id="activity-table">
+        <div class="table-wrap">
+          <table class="ledger-table" id="activity-table">
             <thead>
               <tr>
                 <th>#</th>
                 <th>Timestamp</th>
-                <th>Logged In User (Operator)</th>
-                <th>Action Type</th>
-                <th>Activity Description & Details</th>
+                <th>Operator</th>
+                <th>Action</th>
+                <th>Details</th>
               </tr>
             </thead>
-            <tbody id="activity-tbody">
-              <!-- Rendered dynamically -->
-            </tbody>
+            <tbody id="activity-tbody"></tbody>
           </table>
         </div>
       </div>
+
     </main>
-
-    <!-- Instructions Legend Footer -->
-    <footer class="legend-card">
-      <h3><i class="fa-solid fa-shield-cat"></i> Authorized Access Rules & Permanent Audit Log</h3>
-      <div class="instructions-grid">
-        <div class="inst-item">
-          <i class="fa-solid fa-user-lock inst-icon" style="color: #2563eb;"></i>
-          <p><strong>Strict Login Gate:</strong> Accounts `dinesh` and `mukesh` must log in to use the ledger. Default password `12345` must be changed upon first login.</p>
-        </div>
-        <div class="inst-item">
-          <i class="fa-solid fa-clock-rotate-left inst-icon" style="color: #059669;"></i>
-          <p><strong>Permanent Audit Log:</strong> Every action records exact date, time, and logged-in user. Audit logs cannot be deleted by anyone.</p>
-        </div>
-        <div class="inst-item">
-          <span class="badge badge-pending">Pending</span>
-          <p>Entry created by logged in user, awaiting receipt acknowledgment.</p>
-        </div>
-        <div class="inst-item">
-          <span class="badge badge-ack">Acknowledged</span>
-          <p>Other person confirmed receipt with signature timestamp.</p>
-        </div>
-      </div>
-    </footer>
   </div>
 
-  <!-- MODAL: FORCED / MANUAL CHANGE PASSWORD -->
-  <div class="modal-overlay" id="change-pwd-modal">
-    <div class="modal-card" style="max-width: 420px;">
-      <div class="modal-header">
-        <h3 id="pwd-modal-title"><i class="fa-solid fa-key"></i> Change Password</h3>
-        <button class="close-modal" id="close-pwd-modal-btn">&times;</button>
-      </div>
-      <form id="change-pwd-form">
-        <div id="pwd-force-alert" class="alert-info-box" style="display: none; margin-bottom: 1rem;">
-          <i class="fa-solid fa-triangle-exclamation"></i> <strong>First Login Security Setup:</strong> You are using default password <code>12345</code>. Please change your password to continue.
-        </div>
-
-        <div class="form-group full-width" style="margin-bottom: 1rem;">
-          <label>New Password *</label>
-          <input type="password" id="new-password" class="form-input" placeholder="Enter new password" minlength="4" required>
-        </div>
-
-        <div class="form-group full-width" style="margin-bottom: 1rem;">
-          <label>Confirm New Password *</label>
-          <input type="password" id="confirm-password" class="form-input" placeholder="Confirm new password" minlength="4" required>
-        </div>
-
-        <div id="pwd-error-msg" class="alert-error-box" style="display: none; margin-bottom: 1rem;">
-          <i class="fa-solid fa-circle-exclamation"></i> Passwords do not match. Please re-enter.
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary close-modal" id="cancel-pwd-btn">Cancel</button>
-          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Save Password & Proceed</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL: ADD / EDIT ITEM -->
-  <div class="modal-overlay" id="item-modal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3 id="item-modal-title"><i class="fa-solid fa-box-open"></i> Add New Inventory Item</h3>
-        <button class="close-modal">&times;</button>
+  <!-- ================================================
+       MODAL: ADD / EDIT ITEM
+  ================================================ -->
+  <div class="modal-bg" id="item-modal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3 id="item-modal-title"><i class="fa-solid fa-box-open"></i> Add Inventory Item</h3>
+        <button class="modal-close" id="close-item-modal">&times;</button>
       </div>
       <form id="item-form">
         <input type="hidden" id="item-id">
-        <div class="form-grid">
-          <div class="form-group full-width">
+        <div class="modal-grid">
+          <div class="mfield span2">
             <label>Person Taking Item *</label>
-            <select id="item-person" class="form-select" required>
+            <select id="item-person" required>
               <option value="Dinesh Pachauri">Dinesh Pachauri</option>
               <option value="Mukesh Pachauri">Mukesh Pachauri</option>
             </select>
           </div>
-          <div class="form-group full-width">
+          <div class="mfield span2">
             <label>Item Description *</label>
-            <input type="text" id="item-desc" class="form-input" placeholder="e.g. Double Bottle Box" required>
+            <input type="text" id="item-desc" placeholder="e.g. Double Bottle Box" required>
           </div>
-          <div class="form-group">
+          <div class="mfield">
             <label>Quantity *</label>
-            <input type="number" id="item-qty" class="form-input" min="1" step="1" placeholder="e.g. 10" required>
+            <input type="number" id="item-qty" min="1" placeholder="e.g. 10" required>
           </div>
-          <div class="form-group">
+          <div class="mfield">
             <label>Unit / Pack</label>
-            <input type="text" id="item-unit" class="form-input" placeholder="e.g. Per Box, Pack of 6">
+            <input type="text" id="item-unit" placeholder="e.g. Per Box, Pack of 6">
           </div>
-          <div class="form-group">
+          <div class="mfield">
             <label>Price per Unit (₹)</label>
-            <input type="number" id="item-price" class="form-input" min="0" step="0.01" placeholder="e.g. 16.00">
+            <input type="number" id="item-price" min="0" step="0.01" placeholder="e.g. 16.00">
           </div>
-          <div class="form-group">
+          <div class="mfield">
             <label>Status</label>
-            <select id="item-status" class="form-select">
+            <select id="item-status">
               <option value="Pending">Pending</option>
               <option value="Acknowledged">Acknowledged</option>
               <option value="Cleared">Cleared</option>
             </select>
           </div>
-          <div class="form-group">
+          <div class="mfield">
             <label>Acknowledged By</label>
-            <input type="text" id="item-ack" class="form-input" placeholder="Name of person acknowledging">
+            <input type="text" id="item-ack" placeholder="Name of acknowledging person">
           </div>
-          <div class="form-group">
+          <div class="mfield">
             <label>Date</label>
-            <input type="date" id="item-date" class="form-input">
+            <input type="date" id="item-date">
           </div>
-          <div class="form-group full-width">
+          <div class="mfield span2">
             <label>Notes</label>
-            <input type="text" id="item-notes" class="form-input" placeholder="Additional notes...">
+            <input type="text" id="item-notes" placeholder="Additional notes...">
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary close-modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Item</button>
+        <div class="modal-foot">
+          <button type="button" class="btn-cancel" id="cancel-item-modal">Cancel</button>
+          <button type="submit" class="btn-submit">Save Item</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- MODAL: RECORD PAYMENT -->
-  <div class="modal-overlay" id="payment-modal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3><i class="fa-solid fa-receipt"></i> Log Payment Transfer</h3>
-        <button class="close-modal">&times;</button>
+  <div class="modal-bg" id="payment-modal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3><i class="fa-solid fa-receipt"></i> Record Payment Transfer</h3>
+        <button class="modal-close" id="close-payment-modal">&times;</button>
       </div>
       <form id="payment-form">
-        <div class="form-grid">
-          <div class="form-group">
+        <div class="modal-grid">
+          <div class="mfield">
             <label>Date *</label>
-            <input type="date" id="pay-date" class="form-input" required>
+            <input type="date" id="pay-date" required>
           </div>
-          <div class="form-group">
+          <div class="mfield">
             <label>Paid By *</label>
-            <select id="pay-by" class="form-select" required>
+            <select id="pay-by" required>
               <option value="Dinesh Pachauri">Dinesh Pachauri</option>
               <option value="Mukesh Pachauri">Mukesh Pachauri</option>
             </select>
           </div>
-          <div class="form-group">
-            <label>Amount Paid (₹) *</label>
-            <input type="number" id="pay-amount" class="form-input" min="0.01" step="0.01" placeholder="e.g. 5000" required>
+          <div class="mfield">
+            <label>Amount (₹) *</label>
+            <input type="number" id="pay-amount" min="0.01" step="0.01" placeholder="e.g. 5000" required>
           </div>
-          <div class="form-group">
-            <label>Payment Method</label>
-            <select id="pay-method" class="form-select">
+          <div class="mfield">
+            <label>Method</label>
+            <select id="pay-method">
               <option value="UPI / GPay">UPI / GPay / PhonePe</option>
               <option value="Cash">Cash</option>
               <option value="Bank Transfer">Bank Transfer</option>
               <option value="Goods Exchange">Goods Exchange</option>
             </select>
           </div>
-          <div class="form-group full-width">
+          <div class="mfield span2">
             <label>Notes</label>
-            <input type="text" id="pay-notes" class="form-input" placeholder="e.g. Part payment for inventory balance">
+            <input type="text" id="pay-notes" placeholder="e.g. Part payment for inventory balance">
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary close-modal">Cancel</button>
-          <button type="submit" class="btn btn-success">Record Payment</button>
+        <div class="modal-foot">
+          <button type="button" class="btn-cancel" id="cancel-payment-modal">Cancel</button>
+          <button type="submit" class="btn-submit btn-submit--green">Record Payment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CHANGE PASSWORD (manual via header button) -->
+  <div class="modal-bg" id="changepwd-modal">
+    <div class="modal-box" style="max-width:380px">
+      <div class="modal-head">
+        <h3><i class="fa-solid fa-key"></i> Change Your Password</h3>
+        <button class="modal-close" id="close-changepwd-modal">&times;</button>
+      </div>
+      <form id="changepwd-form">
+        <div class="modal-grid" style="grid-template-columns:1fr">
+          <div class="mfield">
+            <label>New Password *</label>
+            <input type="password" id="changepwd-new" class="login-input" placeholder="Minimum 4 characters" minlength="4" required>
+          </div>
+          <div class="mfield">
+            <label>Confirm Password *</label>
+            <input type="password" id="changepwd-confirm" class="login-input" placeholder="Re-enter new password" minlength="4" required>
+          </div>
+          <div id="changepwd-error" class="login-error" style="display:none">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span id="changepwd-error-text"></span>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn-cancel" id="cancel-changepwd-modal">Cancel</button>
+          <button type="submit" class="btn-submit">Update Password</button>
         </div>
       </form>
     </div>
