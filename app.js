@@ -1,4 +1,4 @@
-// Initial Default Data from User's Prompt
+// Initial Default Data
 const initialItems = [
   // Dinesh Pachauri Items
   { id: 1, person: "Dinesh Pachauri", desc: "Double Bottle Box", qty: 46, unit: "Per Box", price: 16.00, status: "Pending", ackBy: "", notes: "", date: "2026-08-10" },
@@ -20,9 +20,17 @@ const initialItems = [
 
 const initialPayments = [];
 
+const initialActivityLogs = [
+  { id: 1, timestamp: "2026-08-10 10:00:00", operator: "Dinesh Pachauri", actionType: "Item Added", details: "Initial entry created: 7 inventory items added for Dinesh Pachauri (Total: ₹15,841.00)" },
+  { id: 2, timestamp: "2026-08-10 10:05:00", operator: "Mukesh Pachauri", actionType: "Item Added", details: "Initial entry created: 6 inventory items added for Mukesh Pachauri (Total: ₹8,391.00)" }
+];
+
 // State variables
 let items = JSON.parse(localStorage.getItem('pachauri_inventory_items')) || initialItems;
 let payments = JSON.parse(localStorage.getItem('pachauri_inventory_payments')) || initialPayments;
+let activityLogs = JSON.parse(localStorage.getItem('pachauri_inventory_activities')) || initialActivityLogs;
+let activeOperator = localStorage.getItem('pachauri_active_operator') || "Dinesh Pachauri";
+
 let activeTab = 'all';
 let searchQuery = '';
 let statusFilter = 'all';
@@ -30,6 +38,8 @@ let statusFilter = 'all';
 // DOM Elements
 const itemsTbody = document.getElementById('items-tbody');
 const paymentsTbody = document.getElementById('payments-tbody');
+const activityTbody = document.getElementById('activity-tbody');
+const activeUserSelect = document.getElementById('active-user-select');
 const kpiDineshTotal = document.getElementById('kpi-dinesh-total');
 const kpiDineshCount = document.getElementById('kpi-dinesh-count');
 const kpiMukeshTotal = document.getElementById('kpi-mukesh-total');
@@ -42,22 +52,55 @@ const netBalanceCard = document.getElementById('net-balance-card');
 const searchInput = document.getElementById('search-input');
 const statusSelectFilter = document.getElementById('status-filter');
 const recordCountBadge = document.getElementById('record-count');
+const activityCountBadge = document.getElementById('activity-count');
 
-// Helper Formatter
+// Sync Operator Selector
+if (activeUserSelect) {
+  activeUserSelect.value = activeOperator;
+  activeUserSelect.addEventListener('change', (e) => {
+    activeOperator = e.target.value;
+    localStorage.setItem('pachauri_active_operator', activeOperator);
+    logActivity('Operator Switched', `Switched active operator context to '${activeOperator}'`);
+    saveState();
+  });
+}
+
+// Helper Formatters
 const formatCurrency = (val) => {
   if (val === null || val === undefined || isNaN(val)) return '-';
   return '₹' + Number(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
-// Save to LocalStorage
+const getNowFormatted = () => {
+  const now = new Date();
+  const dateStr = now.toISOString().split('T')[0];
+  const timeStr = now.toTimeString().split(' ')[0];
+  return `${dateStr} ${timeStr}`;
+};
+
+// Activity Logging Engine
+const logActivity = (actionType, details, operatorOverride = null) => {
+  const newLog = {
+    id: activityLogs.length > 0 ? Math.max(...activityLogs.map(a => a.id)) + 1 : 1,
+    timestamp: getNowFormatted(),
+    operator: operatorOverride || activeOperator,
+    actionType: actionType,
+    details: details
+  };
+  activityLogs.unshift(newLog); // newest first
+  localStorage.setItem('pachauri_inventory_activities', JSON.stringify(activityLogs));
+};
+
+// Save State
 const saveState = () => {
   localStorage.setItem('pachauri_inventory_items', JSON.stringify(items));
   localStorage.setItem('pachauri_inventory_payments', JSON.stringify(payments));
+  localStorage.setItem('pachauri_inventory_activities', JSON.stringify(activityLogs));
   updateKPIs();
   renderTables();
 };
 
-// Calculate Balance Engine
+// Balance Calculation Engine
 const calculateBalance = () => {
   const dineshItemsTotal = items
     .filter(item => item.person === 'Dinesh Pachauri')
@@ -116,9 +159,19 @@ const updateKPIs = () => {
   }
 };
 
-// Render Tables
+// Action Badge CSS Helper
+const getActionBadgeClass = (actionType) => {
+  if (actionType.includes('Added')) return 'badge-act-add';
+  if (actionType.includes('Updated') || actionType.includes('Edit')) return 'badge-act-edit';
+  if (actionType.includes('Status')) return 'badge-act-status';
+  if (actionType.includes('Deleted')) return 'badge-act-delete';
+  if (actionType.includes('Payment')) return 'badge-act-pay';
+  return 'badge-info';
+};
+
+// Render All Tables
 const renderTables = () => {
-  // Filter items based on activeTab, search, status
+  // Filter items
   let filteredItems = items.filter(item => {
     if (activeTab === 'dinesh' && item.person !== 'Dinesh Pachauri') return false;
     if (activeTab === 'mukesh' && item.person !== 'Mukesh Pachauri') return false;
@@ -134,13 +187,21 @@ const renderTables = () => {
   });
 
   recordCountBadge.textContent = `${filteredItems.length} Items`;
+  if (activityCountBadge) activityCountBadge.textContent = `${activityLogs.length} Activities Logged`;
 
+  // Tab View Switcher
   if (activeTab === 'payments') {
     document.getElementById('items-section').style.display = 'none';
     document.getElementById('payments-section').style.display = 'block';
+    document.getElementById('activity-section').style.display = 'none';
+  } else if (activeTab === 'activity') {
+    document.getElementById('items-section').style.display = 'none';
+    document.getElementById('payments-section').style.display = 'none';
+    document.getElementById('activity-section').style.display = 'block';
   } else {
     document.getElementById('items-section').style.display = 'block';
     document.getElementById('payments-section').style.display = 'block';
+    document.getElementById('activity-section').style.display = 'none';
   }
 
   // Render Items Tbody
@@ -199,9 +260,38 @@ const renderTables = () => {
       paymentsTbody.appendChild(tr);
     });
   }
+
+  // Render Activity Log Tbody
+  if (activityTbody) {
+    activityTbody.innerHTML = '';
+    let filteredLogs = activityLogs;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filteredLogs = activityLogs.filter(a => a.details.toLowerCase().includes(q) || a.operator.toLowerCase().includes(q) || a.actionType.toLowerCase().includes(q));
+    }
+
+    if (filteredLogs.length === 0) {
+      activityTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 1.5rem; color: #94a3b8;">No activity logs recorded yet.</td></tr>`;
+    } else {
+      filteredLogs.forEach((log, idx) => {
+        const tr = document.createElement('tr');
+        const isDinesh = log.operator.includes('Dinesh');
+        const badgeClass = getActionBadgeClass(log.actionType);
+
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td><span class="timestamp-sub">${log.timestamp}</span></td>
+          <td><span class="operator-tag ${isDinesh ? 'operator-dinesh' : 'operator-mukesh'}"><i class="fa-solid fa-user-check"></i> ${log.operator}</span></td>
+          <td><span class="badge ${badgeClass}">${log.actionType}</span></td>
+          <td>${log.details}</td>
+        `;
+        activityTbody.appendChild(tr);
+      });
+    }
+  }
 };
 
-// Event Listeners for Tab Switches & Filtering
+// Event Listeners for Tab Switcher
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', (e) => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -221,17 +311,31 @@ statusSelectFilter.addEventListener('change', (e) => {
   renderTables();
 });
 
-// Handle Inline Status Change in Table
+// Clear Activity Log Button
+const clearActivityBtn = document.getElementById('clear-activity-btn');
+if (clearActivityBtn) {
+  clearActivityBtn.addEventListener('click', () => {
+    if (confirm('Clear activity log audit trail?')) {
+      activityLogs = [];
+      logActivity('Log Cleared', `Activity audit trail was reset by ${activeOperator}`);
+      saveState();
+    }
+  });
+}
+
+// Inline Status Change Handler with Audit Logging
 itemsTbody.addEventListener('change', (e) => {
   if (e.target.classList.contains('status-select')) {
     const id = Number(e.target.dataset.id);
     const newStatus = e.target.value;
     const item = items.find(i => i.id === id);
     if (item) {
+      const oldStatus = item.status;
       item.status = newStatus;
       if (newStatus === 'Acknowledged' && !item.ackBy) {
-        item.ackBy = item.person.includes('Dinesh') ? 'Mukesh Pachauri' : 'Dinesh Pachauri';
+        item.ackBy = activeOperator;
       }
+      logActivity('Status Updated', `Status of '${item.desc}' (${item.person}) changed from '${oldStatus}' to '${newStatus}' by ${activeOperator}`);
       saveState();
     }
   }
@@ -268,7 +372,7 @@ document.querySelectorAll('.close-modal').forEach(btn => {
   });
 });
 
-// Add / Edit Item Form Submission
+// Add / Edit Item Form Submission with Audit Logging
 document.getElementById('item-form').addEventListener('submit', (e) => {
   e.preventDefault();
   const idVal = document.getElementById('item-id').value;
@@ -288,18 +392,20 @@ document.getElementById('item-form').addEventListener('submit', (e) => {
     const item = items.find(i => i.id === Number(idVal));
     if (item) {
       Object.assign(item, { person, desc, qty, unit, price, status, ackBy, date, notes });
+      logActivity('Item Updated', `Updated details for '${desc}' (Taken by ${person}, Qty: ${qty}, Price: ${formatCurrency(price)})`);
     }
   } else {
     // Add new
     const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
     items.push({ id: newId, person, desc, qty, unit, price, status, ackBy, date, notes });
+    logActivity('Item Added', `Added item '${desc}' (Qty: ${qty} ${unit || ''}) taken by ${person} at ${formatCurrency(price)}/unit`);
   }
 
   itemModal.classList.remove('active');
   saveState();
 });
 
-// Edit & Delete Buttons handling
+// Edit & Delete Item Buttons
 itemsTbody.addEventListener('click', (e) => {
   const editBtn = e.target.closest('.edit-item-btn');
   const deleteBtn = e.target.closest('.delete-item-btn');
@@ -325,14 +431,16 @@ itemsTbody.addEventListener('click', (e) => {
 
   if (deleteBtn) {
     const id = Number(deleteBtn.dataset.id);
-    if (confirm('Are you sure you want to delete this item?')) {
+    const item = items.find(i => i.id === id);
+    if (item && confirm(`Are you sure you want to delete '${item.desc}'?`)) {
+      logActivity('Item Deleted', `Deleted inventory item '${item.desc}' (Taken by ${item.person}, Value: ${formatCurrency(item.price ? item.qty * item.price : null)})`);
       items = items.filter(i => i.id !== id);
       saveState();
     }
   }
 });
 
-// Record Payment Form Submission
+// Record Payment Submission with Audit Logging
 document.getElementById('payment-form').addEventListener('submit', (e) => {
   e.preventDefault();
   const date = document.getElementById('pay-date').value;
@@ -342,23 +450,26 @@ document.getElementById('payment-form').addEventListener('submit', (e) => {
   const notes = document.getElementById('pay-notes').value;
 
   payments.push({ date, paidBy, amount, method, notes });
+  logActivity('Payment Recorded', `Recorded payment transfer of ${formatCurrency(amount)} paid by ${paidBy} via ${method}`);
   paymentModal.classList.remove('active');
   saveState();
 });
 
-// Delete Payment handling
+// Delete Payment
 paymentsTbody.addEventListener('click', (e) => {
   const deleteBtn = e.target.closest('.delete-pay-btn');
   if (deleteBtn) {
     const idx = Number(deleteBtn.dataset.idx);
-    if (confirm('Delete this payment record?')) {
+    const pay = payments[idx];
+    if (pay && confirm('Delete this payment record?')) {
+      logActivity('Payment Deleted', `Deleted payment record of ${formatCurrency(pay.amount)} paid by ${pay.paidBy}`);
       payments.splice(idx, 1);
       saveState();
     }
   }
 });
 
-// Export to Excel Button using SheetJS
+// Export to Excel Button including Activity Audit Log Worksheet
 document.getElementById('export-excel-btn').addEventListener('click', () => {
   const wb = XLSX.utils.book_new();
 
@@ -399,13 +510,23 @@ document.getElementById('export-excel-btn').addEventListener('click', () => {
     "Notes": p.notes
   }));
 
+  const actRows = activityLogs.map((a, idx) => ({
+    "#": idx + 1,
+    "Timestamp": a.timestamp,
+    "Performed By": a.operator,
+    "Action Type": a.actionType,
+    "Details": a.details
+  }));
+
   const wsDinesh = XLSX.utils.json_to_sheet(dineshRows);
   const wsMukesh = XLSX.utils.json_to_sheet(mukeshRows);
   const wsPayments = XLSX.utils.json_to_sheet(payRows);
+  const wsActivities = XLSX.utils.json_to_sheet(actRows);
 
   XLSX.utils.book_append_sheet(wb, wsDinesh, "Dinesh Items");
   XLSX.utils.book_append_sheet(wb, wsMukesh, "Mukesh Items");
   XLSX.utils.book_append_sheet(wb, wsPayments, "Payments");
+  XLSX.utils.book_append_sheet(wb, wsActivities, "Activity Audit Log");
 
   XLSX.writeFile(wb, "Pachauri_Inventory_Export.xlsx");
 });

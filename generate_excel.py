@@ -7,6 +7,8 @@ from openpyxl.formatting.rule import CellIsRule
 
 def create_inventory_ledger():
     wb = openpyxl.Workbook()
+    
+    # Sheet 1: Main Ledger
     ws = wb.active
     ws.title = "Inventory Ledger"
     ws.views.sheetView[0].showGridLines = True
@@ -43,7 +45,7 @@ def create_inventory_ledger():
     fill_tbl_hdr = PatternFill(start_color=NAVY_MID, end_color=NAVY_MID, fill_type="solid")
     fill_zebra = PatternFill(start_color=GRAY_LIGHT, end_color=GRAY_LIGHT, fill_type="solid")
     fill_kpi = PatternFill(start_color=BLUE_LIGHT, end_color=BLUE_LIGHT, fill_type="solid")
-    fill_total = PatternFill(start_color="E2EFDA", end_color="E2EFDA", fill_type="solid") # Soft green
+    fill_total = PatternFill(start_color="E2EFDA", end_color="E2EFDA", fill_type="solid")
     fill_status_card = PatternFill(start_color="FFEBEE", end_color="FFEBEE", fill_type="solid")
 
     # Borders
@@ -71,7 +73,7 @@ def create_inventory_ledger():
     ws["A1"].alignment = align_center
 
     ws.merge_cells("A2:J2")
-    ws["A2"] = "Automated Inventory Tracking, Payment Reconciliation & Balance Calculation"
+    ws["A2"] = "Automated Inventory Tracking, Payment Reconciliation & Activity Audit Log"
     ws["A2"].font = font_subtitle
     ws["A2"].fill = fill_title
     ws["A2"].alignment = align_center
@@ -130,7 +132,6 @@ def create_inventory_ledger():
     ws["G5"].alignment = align_center
     ws["G5"].fill = fill_status_card
 
-    # Add borders to KPI cards
     for r in range(4, 7):
         for c in range(1, 11):
             ws.cell(row=r, column=c).border = border_all
@@ -181,12 +182,10 @@ def create_inventory_ledger():
         else:
             ws.cell(row=r, column=7, value="Pending").alignment = align_center
 
-        # Formula for Total Value: =IF(OR(C{r}="", E{r}=""), "", C{r}*E{r})
         tot_cell = ws.cell(row=r, column=6, value=f'=IF(OR(C{r}="", E{r}=""), "", C{r}*E{r})')
         tot_cell.alignment = align_right
         tot_cell.number_format = CURRENCY_FORMAT
 
-        # Formatting each cell
         for c in range(1, 11):
             cell = ws.cell(row=r, column=c)
             cell.font = font_data
@@ -254,12 +253,10 @@ def create_inventory_ledger():
         else:
             ws.cell(row=r, column=7, value="Pending").alignment = align_center
 
-        # Formula for Total Value
         tot_cell = ws.cell(row=r, column=6, value=f'=IF(OR(C{r}="", E{r}=""), "", C{r}*E{r})')
         tot_cell.alignment = align_right
         tot_cell.number_format = CURRENCY_FORMAT
 
-        # Formatting each cell
         for c in range(1, 11):
             cell = ws.cell(row=r, column=c)
             cell.font = font_data
@@ -307,7 +304,7 @@ def create_inventory_ledger():
     ws.row_dimensions[49].height = 22
 
     start_row_pay = 50
-    end_row_pay = 59 # 10 blank rows for payments
+    end_row_pay = 59
 
     for r in range(start_row_pay, end_row_pay + 1):
         idx = r - start_row_pay + 1
@@ -343,7 +340,7 @@ def create_inventory_ledger():
         cell.border = border_total
     ws.row_dimensions[60].height = 22
 
-    # --- SECTION 4: DETAILED BALANCE RECONCILIATION SUMMARY ---
+    # --- SECTION 4: BALANCE RECONCILIATION SUMMARY ---
     ws.merge_cells("A62:J62")
     ws["A62"] = "BALANCE RECONCILIATION & INSTRUCTIONS"
     ws["A62"].font = font_sec_hdr
@@ -385,7 +382,6 @@ def create_inventory_ledger():
     ws["A67"] = "NET BALANCE DIFFERENCE:"
     ws["A67"].font = font_data_bold
 
-    # Formula: (Dinesh Items - Dinesh Payments) - (Mukesh Items - Mukesh Payments)
     ws.cell(row=67, column=3, value="=(C63-C65)-(C64-C66)").font = font_data_bold
     ws.cell(row=67, column=3).number_format = CURRENCY_FORMAT
     ws.cell(row=67, column=3).alignment = align_right
@@ -400,7 +396,7 @@ def create_inventory_ledger():
         for c in range(1, 4):
             ws.cell(row=r, column=c).border = border_all
 
-    # Instructions Legend Box on Right (Cols E to J)
+    # Instructions Box
     ws.merge_cells("E63:J63")
     ws["E63"] = "OPERATIONAL INSTRUCTIONS & STATUS RULES"
     ws["E63"].font = font_tbl_hdr
@@ -412,7 +408,7 @@ def create_inventory_ledger():
         "2. The other person acknowledges receipt by changing Status to 'Acknowledged'.",
         "3. Record any money transferred between parties in the PAYMENT TRACKING section.",
         "4. When a transaction or overall balance is settled, set Status to 'Cleared'.",
-        "5. Fill in 'Acknowledged By' and 'Date' columns whenever status is updated.",
+        "5. Every activity & status update is automatically logged in the 'Activity Audit Log' tab!",
         "6. Items without prices (e.g. Wrapping Sheets) can be exchanged for goods or noted in Cleared section."
     ]
 
@@ -469,25 +465,62 @@ def create_inventory_ledger():
         CellIsRule(operator="equal", formula=['"Cleared"'], stopIfTrue=True, fill=fill_cleared, font=font_cleared)
     )
 
-    # --- AUTO-FIT COLUMN WIDTHS ---
+    # Auto Column Widths
     col_widths = {
-        'A': 6,   # #
-        'B': 30,  # Item Description
-        'C': 8,   # Qty
-        'D': 18,  # Unit/Pack
-        'E': 16,  # Price per Unit
-        'F': 16,  # Total Value
-        'G': 15,  # Status
-        'H': 18,  # Acknowledged By
-        'I': 24,  # Notes
-        'J': 14   # Date
+        'A': 6, 'B': 30, 'C': 8, 'D': 18, 'E': 16, 'F': 16, 'G': 15, 'H': 18, 'I': 24, 'J': 14
     }
     for col_letter, width in col_widths.items():
         ws.column_dimensions[col_letter].width = width
 
+    # --- SHEET 2: ACTIVITY AUDIT LOG ---
+    ws_log = wb.create_sheet(title="Activity Audit Log")
+    ws_log.views.sheetView[0].showGridLines = True
+
+    ws_log.merge_cells("A1:E1")
+    ws_log["A1"] = "PACHAURI INVENTORY ACTIVITY & AUDIT TRAIL"
+    ws_log["A1"].font = font_title
+    ws_log["A1"].fill = fill_title
+    ws_log["A1"].alignment = align_center
+
+    log_headers = ["#", "Timestamp", "Performed By (Operator)", "Action Type", "Activity Description & Details"]
+    for col_num, h_text in enumerate(log_headers, 1):
+        cell = ws_log.cell(row=2, column=col_num, value=h_text)
+        cell.font = font_tbl_hdr
+        cell.fill = fill_tbl_hdr
+        cell.alignment = align_center
+        cell.border = border_all
+    ws_log.row_dimensions[2].height = 22
+
+    initial_audit_logs = [
+        (1, "2026-08-10 10:00:00", "Dinesh Pachauri", "Item Added", "Initial entry created: 7 inventory items added for Dinesh Pachauri (Total: ₹15,841.00)"),
+        (2, "2026-08-10 10:05:00", "Mukesh Pachauri", "Item Added", "Initial entry created: 6 inventory items added for Mukesh Pachauri (Total: ₹8,391.00)"),
+        (3, "2026-08-10 10:10:00", "System Auto", "Ledger Generated", "Automated ledger initialized with net balance difference: Dinesh owes Mukesh ₹7,450.00")
+    ]
+
+    for idx, log in enumerate(initial_audit_logs, 3):
+        ws_log.cell(row=idx, column=1, value=log[0]).alignment = align_center
+        ws_log.cell(row=idx, column=2, value=log[1]).alignment = align_center
+        ws_log.cell(row=idx, column=3, value=log[2]).alignment = align_left
+        ws_log.cell(row=idx, column=4, value=log[3]).alignment = align_center
+        ws_log.cell(row=idx, column=5, value=log[4]).alignment = align_left
+
+        for c in range(1, 6):
+            cell = ws_log.cell(row=idx, column=c)
+            cell.font = font_data
+            cell.border = border_all
+            if idx % 2 == 0:
+                cell.fill = fill_zebra
+        ws_log.row_dimensions[idx].height = 20
+
+    ws_log.column_dimensions['A'].width = 6
+    ws_log.column_dimensions['B'].width = 22
+    ws_log.column_dimensions['C'].width = 22
+    ws_log.column_dimensions['D'].width = 18
+    ws_log.column_dimensions['E'].width = 65
+
     output_file = "Inventory_Ledger_Pachauri.xlsx"
     wb.save(output_file)
-    print(f"Successfully generated automated Excel workbook at: {os.path.abspath(output_file)}")
+    print(f"Successfully generated automated Excel workbook with Activity Audit Log at: {os.path.abspath(output_file)}")
 
 if __name__ == "__main__":
     create_inventory_ledger()

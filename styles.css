@@ -62,7 +62,7 @@ body {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 1.2rem;
 }
 
 .brand {
@@ -88,6 +88,38 @@ body {
 .brand p {
   font-size: 0.875rem;
   color: #cbd5e1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.active-user-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(4px);
+  padding: 0.45rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.active-user-select {
+  background: #ffffff;
+  color: #1e293b;
+  border: none;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
 }
 
 .header-actions {
@@ -218,10 +250,11 @@ body {
   background: #f1f5f9;
   padding: 0.3rem;
   border-radius: 8px;
+  flex-wrap: wrap;
 }
 
 .tab-btn {
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.9rem;
   border: none;
   background: transparent;
   border-radius: 6px;
@@ -332,7 +365,7 @@ body {
   background-color: #f8fafc;
 }
 
-/* STATUS BADGES */
+/* STATUS & ACTION BADGES */
 .badge {
   display: inline-block;
   padding: 0.25rem 0.65rem;
@@ -364,6 +397,32 @@ body {
 .badge-info {
   background: #e2e8f0;
   color: #334155;
+}
+
+/* ACTION BADGES FOR ACTIVITY AUDIT */
+.badge-act-add { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.badge-act-edit { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.badge-act-status { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+.badge-act-delete { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+.badge-act-pay { background: #f0fdf4; color: #047857; border: 1px solid #a7f3d0; }
+
+.operator-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+.operator-dinesh { background: #eff6ff; color: #1d4ed8; }
+.operator-mukesh { background: #f0fdf4; color: #15803d; }
+
+.timestamp-sub {
+  font-size: 0.78rem;
+  color: #64748b;
+  font-family: monospace;
 }
 
 /* STATUS SELECTOR IN TABLE */

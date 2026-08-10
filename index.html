@@ -22,13 +22,25 @@
           <i class="fa-solid fa-boxes-stacked brand-icon"></i>
           <div>
             <h1>Pachauri Inventory & Balance Ledger</h1>
-            <p>Automated Inventory Tracking & Settlement Dashboard</p>
+            <p>Automated Inventory Tracking, Activity Audit & Settlement Dashboard</p>
           </div>
         </div>
-        <div class="header-actions">
-          <button id="add-item-btn" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Item</button>
-          <button id="add-payment-btn" class="btn btn-success"><i class="fa-solid fa-hand-holding-dollar"></i> Record Payment</button>
-          <button id="export-excel-btn" class="btn btn-secondary"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+
+        <div class="header-right">
+          <!-- Active Operator/User Context Picker -->
+          <div class="active-user-box">
+            <label for="active-user-select"><i class="fa-solid fa-user-gear"></i> Active Operator:</label>
+            <select id="active-user-select" class="active-user-select">
+              <option value="Dinesh Pachauri">Dinesh Pachauri</option>
+              <option value="Mukesh Pachauri">Mukesh Pachauri</option>
+            </select>
+          </div>
+
+          <div class="header-actions">
+            <button id="add-item-btn" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Item</button>
+            <button id="add-payment-btn" class="btn btn-success"><i class="fa-solid fa-hand-holding-dollar"></i> Record Payment</button>
+            <button id="export-excel-btn" class="btn btn-secondary"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+          </div>
         </div>
       </div>
     </header>
@@ -79,12 +91,13 @@
         <button class="tab-btn" data-tab="dinesh"><i class="fa-solid fa-user"></i> Dinesh Pachauri</button>
         <button class="tab-btn" data-tab="mukesh"><i class="fa-solid fa-user"></i> Mukesh Pachauri</button>
         <button class="tab-btn" data-tab="payments"><i class="fa-solid fa-receipt"></i> Payment Log</button>
+        <button class="tab-btn" data-tab="activity"><i class="fa-solid fa-clock-rotate-left"></i> Activity Audit Log</button>
       </div>
 
       <div class="filter-group">
         <div class="search-box">
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text" id="search-input" placeholder="Search item description, notes...">
+          <input type="text" id="search-input" placeholder="Search item, notes, activity...">
         </div>
         <select id="status-filter" class="form-select">
           <option value="all">All Statuses</option>
@@ -152,11 +165,38 @@
           </table>
         </div>
       </div>
+
+      <!-- Activity Audit Log Section -->
+      <div id="activity-section" class="table-card" style="margin-top: 1.5rem;">
+        <div class="card-header">
+          <h2><i class="fa-solid fa-clock-rotate-left"></i> Activity & Audit Trail Log</h2>
+          <div>
+            <span class="badge badge-info" id="activity-count">0 Activities Logged</span>
+            <button class="btn btn-sm btn-secondary" id="clear-activity-btn" style="margin-left: 0.5rem;"><i class="fa-solid fa-trash"></i> Clear Log</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" id="activity-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Timestamp</th>
+                <th>Performed By (Operator)</th>
+                <th>Action Type</th>
+                <th>Activity Description & Details</th>
+              </tr>
+            </thead>
+            <tbody id="activity-tbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
     </main>
 
     <!-- Instructions Legend Footer -->
     <footer class="legend-card">
-      <h3><i class="fa-solid fa-circle-info"></i> How the Automated Ledger Works</h3>
+      <h3><i class="fa-solid fa-circle-info"></i> How the Automated Ledger & Audit Trail Works</h3>
       <div class="instructions-grid">
         <div class="inst-item">
           <span class="badge badge-pending">Pending</span>
@@ -171,8 +211,8 @@
           <p>Item or total account balance is paid/settled in full.</p>
         </div>
         <div class="inst-item">
-          <i class="fa-solid fa-calculator inst-icon"></i>
-          <p>Total values = Quantity × Price per unit. Blank price items are recorded for inventory exchange.</p>
+          <i class="fa-solid fa-user-shield inst-icon"></i>
+          <p><strong>Activity Audit:</strong> Every status change, edit, item addition, or payment transfer automatically logs the person's name and exact timestamp!</p>
         </div>
       </div>
     </footer>
