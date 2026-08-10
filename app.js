@@ -25,12 +25,19 @@ const initialActivityLogs = [
   { id: 2, timestamp: "2026-08-10 10:05:00", operator: "Mukesh Pachauri", actionType: "Item Added", details: "Initial entry created: 6 inventory items added for Mukesh Pachauri (Total: ₹8,391.00)" }
 ];
 
-// State variables
+// Authorized User Credentials (PIN: 1234)
+const USER_CREDENTIALS = {
+  "Dinesh Pachauri": "1234",
+  "Mukesh Pachauri": "1234"
+};
+
+// State Variables
 let items = JSON.parse(localStorage.getItem('pachauri_inventory_items')) || initialItems;
 let payments = JSON.parse(localStorage.getItem('pachauri_inventory_payments')) || initialPayments;
 let activityLogs = JSON.parse(localStorage.getItem('pachauri_inventory_activities')) || initialActivityLogs;
-let activeOperator = localStorage.getItem('pachauri_active_operator') || "Dinesh Pachauri";
+let authenticatedUser = localStorage.getItem('pachauri_auth_user') || null;
 
+let pendingAuthAction = null;
 let activeTab = 'all';
 let searchQuery = '';
 let statusFilter = 'all';
@@ -39,7 +46,8 @@ let statusFilter = 'all';
 const itemsTbody = document.getElementById('items-tbody');
 const paymentsTbody = document.getElementById('payments-tbody');
 const activityTbody = document.getElementById('activity-tbody');
-const activeUserSelect = document.getElementById('active-user-select');
+const authSessionBox = document.getElementById('auth-session-box');
+const readOnlyBanner = document.getElementById('read-only-banner');
 const kpiDineshTotal = document.getElementById('kpi-dinesh-total');
 const kpiDineshCount = document.getElementById('kpi-dinesh-count');
 const kpiMukeshTotal = document.getElementById('kpi-mukesh-total');
@@ -54,17 +62,6 @@ const statusSelectFilter = document.getElementById('status-filter');
 const recordCountBadge = document.getElementById('record-count');
 const activityCountBadge = document.getElementById('activity-count');
 
-// Sync Operator Selector
-if (activeUserSelect) {
-  activeUserSelect.value = activeOperator;
-  activeUserSelect.addEventListener('change', (e) => {
-    activeOperator = e.target.value;
-    localStorage.setItem('pachauri_active_operator', activeOperator);
-    logActivity('Operator Switched', `Switched active operator context to '${activeOperator}'`);
-    saveState();
-  });
-}
-
 // Helper Formatters
 const formatCurrency = (val) => {
   if (val === null || val === undefined || isNaN(val)) return '-';
@@ -78,12 +75,13 @@ const getNowFormatted = () => {
   return `${dateStr} ${timeStr}`;
 };
 
-// Activity Logging Engine
-const logActivity = (actionType, details, operatorOverride = null) => {
+// Activity Audit Logger Engine
+const logActivity = (actionType, details, userOverride = null) => {
+  const user = userOverride || authenticatedUser || "Unauthenticated Guest";
   const newLog = {
     id: activityLogs.length > 0 ? Math.max(...activityLogs.map(a => a.id)) + 1 : 1,
     timestamp: getNowFormatted(),
-    operator: operatorOverride || activeOperator,
+    operator: user,
     actionType: actionType,
     details: details
   };
@@ -96,9 +94,89 @@ const saveState = () => {
   localStorage.setItem('pachauri_inventory_items', JSON.stringify(items));
   localStorage.setItem('pachauri_inventory_payments', JSON.stringify(payments));
   localStorage.setItem('pachauri_inventory_activities', JSON.stringify(activityLogs));
+  if (authenticatedUser) {
+    localStorage.setItem('pachauri_auth_user', authenticatedUser);
+  } else {
+    localStorage.removeItem('pachauri_auth_user');
+  }
   updateKPIs();
+  renderAuthHeader();
   renderTables();
 };
+
+// Render Header Authentication Controls
+const renderAuthHeader = () => {
+  if (authenticatedUser) {
+    const isDinesh = authenticatedUser.includes('Dinesh');
+    authSessionBox.innerHTML = `
+      <div class="auth-user-tag">
+        <span class="status-dot"></span>
+        <span><i class="fa-solid fa-user-shield"></i> ${authenticatedUser}</span>
+      </div>
+      <button id="logout-btn" class="btn btn-logout" title="Logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    `;
+    if (readOnlyBanner) readOnlyBanner.style.display = 'none';
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      logActivity('User Logged Out', `User ${authenticatedUser} logged out of session.`);
+      authenticatedUser = null;
+      saveState();
+    });
+  } else {
+    authSessionBox.innerHTML = `
+      <button id="login-trigger-btn" class="btn btn-login"><i class="fa-solid fa-key"></i> Login as User</button>
+    `;
+    if (readOnlyBanner) readOnlyBanner.style.display = 'inline-block';
+
+    document.getElementById('login-trigger-btn').addEventListener('click', () => {
+      openLoginModal();
+    });
+  }
+};
+
+// Authorization Guard Function
+const requireAuth = (callback) => {
+  if (authenticatedUser) {
+    callback();
+  } else {
+    pendingAuthAction = callback;
+    openLoginModal();
+  }
+};
+
+// Open Login Modal
+const loginModal = document.getElementById('login-modal');
+const loginForm = document.getElementById('login-form');
+const loginError = document.getElementById('login-error');
+
+const openLoginModal = () => {
+  loginForm.reset();
+  loginError.style.display = 'none';
+  loginModal.classList.add('active');
+  document.getElementById('login-pin').focus();
+};
+
+// Handle Login Form Submit
+loginForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const selectedUser = document.getElementById('login-user-select').value;
+  const enteredPin = document.getElementById('login-pin').value;
+
+  if (USER_CREDENTIALS[selectedUser] === enteredPin) {
+    authenticatedUser = selectedUser;
+    logActivity('User Logged In', `User ${authenticatedUser} successfully authenticated via security PIN.`, authenticatedUser);
+    loginModal.classList.remove('active');
+    saveState();
+
+    if (pendingAuthAction) {
+      const action = pendingAuthAction;
+      pendingAuthAction = null;
+      action();
+    }
+  } else {
+    loginError.style.display = 'block';
+  }
+});
 
 // Balance Calculation Engine
 const calculateBalance = () => {
@@ -166,12 +244,12 @@ const getActionBadgeClass = (actionType) => {
   if (actionType.includes('Status')) return 'badge-act-status';
   if (actionType.includes('Deleted')) return 'badge-act-delete';
   if (actionType.includes('Payment')) return 'badge-act-pay';
+  if (actionType.includes('Logged')) return 'badge-act-auth';
   return 'badge-info';
 };
 
 // Render All Tables
 const renderTables = () => {
-  // Filter items
   let filteredItems = items.filter(item => {
     if (activeTab === 'dinesh' && item.person !== 'Dinesh Pachauri') return false;
     if (activeTab === 'mukesh' && item.person !== 'Mukesh Pachauri') return false;
@@ -276,12 +354,15 @@ const renderTables = () => {
       filteredLogs.forEach((log, idx) => {
         const tr = document.createElement('tr');
         const isDinesh = log.operator.includes('Dinesh');
+        const isMukesh = log.operator.includes('Mukesh');
         const badgeClass = getActionBadgeClass(log.actionType);
+
+        let operatorTag = `<span class="operator-tag ${isDinesh ? 'operator-dinesh' : (isMukesh ? 'operator-mukesh' : 'operator-guest')}"><i class="fa-solid fa-user-check"></i> ${log.operator}</span>`;
 
         tr.innerHTML = `
           <td>${idx + 1}</td>
           <td><span class="timestamp-sub">${log.timestamp}</span></td>
-          <td><span class="operator-tag ${isDinesh ? 'operator-dinesh' : 'operator-mukesh'}"><i class="fa-solid fa-user-check"></i> ${log.operator}</span></td>
+          <td>${operatorTag}</td>
           <td><span class="badge ${badgeClass}">${log.actionType}</span></td>
           <td>${log.details}</td>
         `;
@@ -291,7 +372,7 @@ const renderTables = () => {
   }
 };
 
-// Event Listeners for Tab Switcher
+// Tab Switcher Event Listeners
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', (e) => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -311,101 +392,121 @@ statusSelectFilter.addEventListener('change', (e) => {
   renderTables();
 });
 
-// Clear Activity Log Button
+// Clear Activity Log (Guarded)
 const clearActivityBtn = document.getElementById('clear-activity-btn');
 if (clearActivityBtn) {
   clearActivityBtn.addEventListener('click', () => {
-    if (confirm('Clear activity log audit trail?')) {
-      activityLogs = [];
-      logActivity('Log Cleared', `Activity audit trail was reset by ${activeOperator}`);
-      saveState();
-    }
+    requireAuth(() => {
+      if (confirm('Clear activity log audit trail?')) {
+        activityLogs = [];
+        logActivity('Log Reset', `Activity audit trail was reset by ${authenticatedUser}`);
+        saveState();
+      }
+    });
   });
 }
 
-// Inline Status Change Handler with Audit Logging
+// Inline Status Change Handler (Guarded by Authentication)
 itemsTbody.addEventListener('change', (e) => {
   if (e.target.classList.contains('status-select')) {
-    const id = Number(e.target.dataset.id);
-    const newStatus = e.target.value;
+    const selectElem = e.target;
+    const id = Number(selectElem.dataset.id);
+    const newStatus = selectElem.value;
     const item = items.find(i => i.id === id);
+
     if (item) {
       const oldStatus = item.status;
-      item.status = newStatus;
-      if (newStatus === 'Acknowledged' && !item.ackBy) {
-        item.ackBy = activeOperator;
+      requireAuth(() => {
+        item.status = newStatus;
+        if (newStatus === 'Acknowledged' && !item.ackBy) {
+          item.ackBy = authenticatedUser;
+        }
+        logActivity('Status Updated', `Status of '${item.desc}' (${item.person}) changed from '${oldStatus}' to '${newStatus}' by ${authenticatedUser}`);
+        saveState();
+      });
+
+      // If user cancels auth prompt, revert select to old value
+      if (!authenticatedUser) {
+        selectElem.value = oldStatus;
       }
-      logActivity('Status Updated', `Status of '${item.desc}' (${item.person}) changed from '${oldStatus}' to '${newStatus}' by ${activeOperator}`);
-      saveState();
     }
   }
 });
 
-// Modal Logic
+// Modal Elements
 const itemModal = document.getElementById('item-modal');
 const paymentModal = document.getElementById('payment-modal');
 
 document.getElementById('add-item-btn').addEventListener('click', () => {
-  document.getElementById('item-form').reset();
-  document.getElementById('item-id').value = '';
-  document.getElementById('item-modal-title').innerHTML = '<i class="fa-solid fa-box-open"></i> Add New Inventory Item';
-  document.getElementById('item-date').value = new Date().toISOString().split('T')[0];
-  itemModal.classList.add('active');
+  requireAuth(() => {
+    document.getElementById('item-form').reset();
+    document.getElementById('item-id').value = '';
+    document.getElementById('item-modal-title').innerHTML = '<i class="fa-solid fa-box-open"></i> Add New Inventory Item';
+    document.getElementById('item-date').value = new Date().toISOString().split('T')[0];
+    itemModal.classList.add('active');
+  });
 });
 
 document.getElementById('add-payment-btn').addEventListener('click', () => {
-  document.getElementById('payment-form').reset();
-  document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
-  paymentModal.classList.add('active');
+  requireAuth(() => {
+    document.getElementById('payment-form').reset();
+    document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
+    paymentModal.classList.add('active');
+  });
 });
 
 document.getElementById('add-payment-btn-inline').addEventListener('click', () => {
-  document.getElementById('payment-form').reset();
-  document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
-  paymentModal.classList.add('active');
+  requireAuth(() => {
+    document.getElementById('payment-form').reset();
+    document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
+    paymentModal.classList.add('active');
+  });
 });
 
 document.querySelectorAll('.close-modal').forEach(btn => {
   btn.addEventListener('click', () => {
     itemModal.classList.remove('active');
     paymentModal.classList.remove('active');
+    loginModal.classList.remove('active');
   });
 });
 
-// Add / Edit Item Form Submission with Audit Logging
+// Add / Edit Item Form Submission (Guarded)
 document.getElementById('item-form').addEventListener('submit', (e) => {
   e.preventDefault();
-  const idVal = document.getElementById('item-id').value;
-  const person = document.getElementById('item-person').value;
-  const desc = document.getElementById('item-desc').value;
-  const qty = Number(document.getElementById('item-qty').value);
-  const unit = document.getElementById('item-unit').value;
-  const priceVal = document.getElementById('item-price').value;
-  const price = priceVal !== '' ? Number(priceVal) : null;
-  const status = document.getElementById('item-status').value;
-  const ackBy = document.getElementById('item-ack').value;
-  const date = document.getElementById('item-date').value;
-  const notes = document.getElementById('item-notes').value;
+  requireAuth(() => {
+    const idVal = document.getElementById('item-id').value;
+    const person = document.getElementById('item-person').value;
+    const desc = document.getElementById('item-desc').value;
+    const qty = Number(document.getElementById('item-qty').value);
+    const unit = document.getElementById('item-unit').value;
+    const priceVal = document.getElementById('item-price').value;
+    const price = priceVal !== '' ? Number(priceVal) : null;
+    const status = document.getElementById('item-status').value;
+    const ackBy = document.getElementById('item-ack').value;
+    const date = document.getElementById('item-date').value;
+    const notes = document.getElementById('item-notes').value;
 
-  if (idVal) {
-    // Edit existing
-    const item = items.find(i => i.id === Number(idVal));
-    if (item) {
-      Object.assign(item, { person, desc, qty, unit, price, status, ackBy, date, notes });
-      logActivity('Item Updated', `Updated details for '${desc}' (Taken by ${person}, Qty: ${qty}, Price: ${formatCurrency(price)})`);
+    if (idVal) {
+      // Edit existing
+      const item = items.find(i => i.id === Number(idVal));
+      if (item) {
+        Object.assign(item, { person, desc, qty, unit, price, status, ackBy, date, notes });
+        logActivity('Item Updated', `Updated item details for '${desc}' (Taken by ${person}, Qty: ${qty}, Price: ${formatCurrency(price)})`);
+      }
+    } else {
+      // Add new
+      const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
+      items.push({ id: newId, person, desc, qty, unit, price, status, ackBy, date, notes });
+      logActivity('Item Added', `Added item '${desc}' (Qty: ${qty} ${unit || ''}) taken by ${person} at ${formatCurrency(price)}/unit`);
     }
-  } else {
-    // Add new
-    const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
-    items.push({ id: newId, person, desc, qty, unit, price, status, ackBy, date, notes });
-    logActivity('Item Added', `Added item '${desc}' (Qty: ${qty} ${unit || ''}) taken by ${person} at ${formatCurrency(price)}/unit`);
-  }
 
-  itemModal.classList.remove('active');
-  saveState();
+    itemModal.classList.remove('active');
+    saveState();
+  });
 });
 
-// Edit & Delete Item Buttons
+// Edit & Delete Item Buttons (Guarded)
 itemsTbody.addEventListener('click', (e) => {
   const editBtn = e.target.closest('.edit-item-btn');
   const deleteBtn = e.target.closest('.delete-item-btn');
@@ -414,62 +515,74 @@ itemsTbody.addEventListener('click', (e) => {
     const id = Number(editBtn.dataset.id);
     const item = items.find(i => i.id === id);
     if (item) {
-      document.getElementById('item-id').value = item.id;
-      document.getElementById('item-person').value = item.person;
-      document.getElementById('item-desc').value = item.desc;
-      document.getElementById('item-qty').value = item.qty;
-      document.getElementById('item-unit').value = item.unit || '';
-      document.getElementById('item-price').value = item.price !== null ? item.price : '';
-      document.getElementById('item-status').value = item.status;
-      document.getElementById('item-ack').value = item.ackBy || '';
-      document.getElementById('item-date').value = item.date || '';
-      document.getElementById('item-notes').value = item.notes || '';
-      document.getElementById('item-modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edit Inventory Item';
-      itemModal.classList.add('active');
+      requireAuth(() => {
+        document.getElementById('item-id').value = item.id;
+        document.getElementById('item-person').value = item.person;
+        document.getElementById('item-desc').value = item.desc;
+        document.getElementById('item-qty').value = item.qty;
+        document.getElementById('item-unit').value = item.unit || '';
+        document.getElementById('item-price').value = item.price !== null ? item.price : '';
+        document.getElementById('item-status').value = item.status;
+        document.getElementById('item-ack').value = item.ackBy || '';
+        document.getElementById('item-date').value = item.date || '';
+        document.getElementById('item-notes').value = item.notes || '';
+        document.getElementById('item-modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edit Inventory Item';
+        itemModal.classList.add('active');
+      });
     }
   }
 
   if (deleteBtn) {
     const id = Number(deleteBtn.dataset.id);
     const item = items.find(i => i.id === id);
-    if (item && confirm(`Are you sure you want to delete '${item.desc}'?`)) {
-      logActivity('Item Deleted', `Deleted inventory item '${item.desc}' (Taken by ${item.person}, Value: ${formatCurrency(item.price ? item.qty * item.price : null)})`);
-      items = items.filter(i => i.id !== id);
-      saveState();
+    if (item) {
+      requireAuth(() => {
+        if (confirm(`Are you sure you want to delete '${item.desc}'?`)) {
+          logActivity('Item Deleted', `Deleted inventory item '${item.desc}' (Taken by ${item.person}, Value: ${formatCurrency(item.price ? item.qty * item.price : null)})`);
+          items = items.filter(i => i.id !== id);
+          saveState();
+        }
+      });
     }
   }
 });
 
-// Record Payment Submission with Audit Logging
+// Record Payment Submission (Guarded)
 document.getElementById('payment-form').addEventListener('submit', (e) => {
   e.preventDefault();
-  const date = document.getElementById('pay-date').value;
-  const paidBy = document.getElementById('pay-by').value;
-  const amount = Number(document.getElementById('pay-amount').value);
-  const method = document.getElementById('pay-method').value;
-  const notes = document.getElementById('pay-notes').value;
+  requireAuth(() => {
+    const date = document.getElementById('pay-date').value;
+    const paidBy = document.getElementById('pay-by').value;
+    const amount = Number(document.getElementById('pay-amount').value);
+    const method = document.getElementById('pay-method').value;
+    const notes = document.getElementById('pay-notes').value;
 
-  payments.push({ date, paidBy, amount, method, notes });
-  logActivity('Payment Recorded', `Recorded payment transfer of ${formatCurrency(amount)} paid by ${paidBy} via ${method}`);
-  paymentModal.classList.remove('active');
-  saveState();
+    payments.push({ date, paidBy, amount, method, notes });
+    logActivity('Payment Recorded', `Recorded payment transfer of ${formatCurrency(amount)} paid by ${paidBy} via ${method}`);
+    paymentModal.classList.remove('active');
+    saveState();
+  });
 });
 
-// Delete Payment
+// Delete Payment (Guarded)
 paymentsTbody.addEventListener('click', (e) => {
   const deleteBtn = e.target.closest('.delete-pay-btn');
   if (deleteBtn) {
     const idx = Number(deleteBtn.dataset.idx);
     const pay = payments[idx];
-    if (pay && confirm('Delete this payment record?')) {
-      logActivity('Payment Deleted', `Deleted payment record of ${formatCurrency(pay.amount)} paid by ${pay.paidBy}`);
-      payments.splice(idx, 1);
-      saveState();
+    if (pay) {
+      requireAuth(() => {
+        if (confirm('Delete this payment record?')) {
+          logActivity('Payment Deleted', `Deleted payment record of ${formatCurrency(pay.amount)} paid by ${pay.paidBy}`);
+          payments.splice(idx, 1);
+          saveState();
+        }
+      });
     }
   }
 });
 
-// Export to Excel Button including Activity Audit Log Worksheet
+// Export to Excel Button including Security & Activity Audit Sheet
 document.getElementById('export-excel-btn').addEventListener('click', () => {
   const wb = XLSX.utils.book_new();
 
@@ -513,7 +626,7 @@ document.getElementById('export-excel-btn').addEventListener('click', () => {
   const actRows = activityLogs.map((a, idx) => ({
     "#": idx + 1,
     "Timestamp": a.timestamp,
-    "Performed By": a.operator,
+    "Authenticated User": a.operator,
     "Action Type": a.actionType,
     "Details": a.details
   }));
@@ -526,11 +639,12 @@ document.getElementById('export-excel-btn').addEventListener('click', () => {
   XLSX.utils.book_append_sheet(wb, wsDinesh, "Dinesh Items");
   XLSX.utils.book_append_sheet(wb, wsMukesh, "Mukesh Items");
   XLSX.utils.book_append_sheet(wb, wsPayments, "Payments");
-  XLSX.utils.book_append_sheet(wb, wsActivities, "Activity Audit Log");
+  XLSX.utils.book_append_sheet(wb, wsActivities, "Security Audit Log");
 
   XLSX.writeFile(wb, "Pachauri_Inventory_Export.xlsx");
 });
 
 // Initial Render
 updateKPIs();
+renderAuthHeader();
 renderTables();

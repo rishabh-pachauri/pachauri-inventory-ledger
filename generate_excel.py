@@ -73,7 +73,7 @@ def create_inventory_ledger():
     ws["A1"].alignment = align_center
 
     ws.merge_cells("A2:J2")
-    ws["A2"] = "Automated Inventory Tracking, Payment Reconciliation & Activity Audit Log"
+    ws["A2"] = "Authorized Inventory Tracking, Payment Reconciliation & Security Audit Log"
     ws["A2"].font = font_subtitle
     ws["A2"].fill = fill_title
     ws["A2"].alignment = align_center
@@ -398,18 +398,18 @@ def create_inventory_ledger():
 
     # Instructions Box
     ws.merge_cells("E63:J63")
-    ws["E63"] = "OPERATIONAL INSTRUCTIONS & STATUS RULES"
+    ws["E63"] = "OPERATIONAL INSTRUCTIONS & SECURITY PROTOCOL"
     ws["E63"].font = font_tbl_hdr
     ws["E63"].fill = fill_tbl_hdr
     ws["E63"].alignment = align_center
 
     instructions = [
-        "1. When adding a new item entry, set Status to 'Pending'.",
-        "2. The other person acknowledges receipt by changing Status to 'Acknowledged'.",
-        "3. Record any money transferred between parties in the PAYMENT TRACKING section.",
-        "4. When a transaction or overall balance is settled, set Status to 'Cleared'.",
-        "5. Every activity & status update is automatically logged in the 'Activity Audit Log' tab!",
-        "6. Items without prices (e.g. Wrapping Sheets) can be exchanged for goods or noted in Cleared section."
+        "1. Only authenticated users (Dinesh Pachauri or Mukesh Pachauri) can make changes.",
+        "2. To modify entries, change status, or record payments, enter your Security PIN (Default: 1234).",
+        "3. Every mutation automatically logs the exact timestamp and authenticated user ID.",
+        "4. When adding a new item entry, set Status to 'Pending'.",
+        "5. Other authorized person acknowledges receipt by changing Status to 'Acknowledged'.",
+        "6. Audit history is preserved in the 'Security Audit Log' tab."
     ]
 
     for idx, inst in enumerate(instructions, 64):
@@ -465,24 +465,23 @@ def create_inventory_ledger():
         CellIsRule(operator="equal", formula=['"Cleared"'], stopIfTrue=True, fill=fill_cleared, font=font_cleared)
     )
 
-    # Auto Column Widths
     col_widths = {
         'A': 6, 'B': 30, 'C': 8, 'D': 18, 'E': 16, 'F': 16, 'G': 15, 'H': 18, 'I': 24, 'J': 14
     }
     for col_letter, width in col_widths.items():
         ws.column_dimensions[col_letter].width = width
 
-    # --- SHEET 2: ACTIVITY AUDIT LOG ---
-    ws_log = wb.create_sheet(title="Activity Audit Log")
+    # --- SHEET 2: SECURITY & ACTIVITY AUDIT LOG ---
+    ws_log = wb.create_sheet(title="Security Audit Log")
     ws_log.views.sheetView[0].showGridLines = True
 
     ws_log.merge_cells("A1:E1")
-    ws_log["A1"] = "PACHAURI INVENTORY ACTIVITY & AUDIT TRAIL"
+    ws_log["A1"] = "PACHAURI INVENTORY SECURITY & ACTIVITY AUDIT LOG"
     ws_log["A1"].font = font_title
     ws_log["A1"].fill = fill_title
     ws_log["A1"].alignment = align_center
 
-    log_headers = ["#", "Timestamp", "Performed By (Operator)", "Action Type", "Activity Description & Details"]
+    log_headers = ["#", "Timestamp", "Authenticated User", "Action Type", "Activity & Security Audit Details"]
     for col_num, h_text in enumerate(log_headers, 1):
         cell = ws_log.cell(row=2, column=col_num, value=h_text)
         cell.font = font_tbl_hdr
@@ -494,7 +493,7 @@ def create_inventory_ledger():
     initial_audit_logs = [
         (1, "2026-08-10 10:00:00", "Dinesh Pachauri", "Item Added", "Initial entry created: 7 inventory items added for Dinesh Pachauri (Total: ₹15,841.00)"),
         (2, "2026-08-10 10:05:00", "Mukesh Pachauri", "Item Added", "Initial entry created: 6 inventory items added for Mukesh Pachauri (Total: ₹8,391.00)"),
-        (3, "2026-08-10 10:10:00", "System Auto", "Ledger Generated", "Automated ledger initialized with net balance difference: Dinesh owes Mukesh ₹7,450.00")
+        (3, "2026-08-10 10:10:00", "System Security", "Ledger Initialized", "Automated ledger initialized with security PIN authentication & time-stamped audit logging.")
     ]
 
     for idx, log in enumerate(initial_audit_logs, 3):
@@ -520,7 +519,7 @@ def create_inventory_ledger():
 
     output_file = "Inventory_Ledger_Pachauri.xlsx"
     wb.save(output_file)
-    print(f"Successfully generated automated Excel workbook with Activity Audit Log at: {os.path.abspath(output_file)}")
+    print(f"Successfully generated automated Excel workbook with Security Audit Log at: {os.path.abspath(output_file)}")
 
 if __name__ == "__main__":
     create_inventory_ledger()

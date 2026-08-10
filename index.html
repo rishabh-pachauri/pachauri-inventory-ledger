@@ -22,18 +22,14 @@
           <i class="fa-solid fa-boxes-stacked brand-icon"></i>
           <div>
             <h1>Pachauri Inventory & Balance Ledger</h1>
-            <p>Automated Inventory Tracking, Activity Audit & Settlement Dashboard</p>
+            <p>Authorized Inventory Tracking, Secure Login & Audit Log</p>
           </div>
         </div>
 
         <div class="header-right">
-          <!-- Active Operator/User Context Picker -->
-          <div class="active-user-box">
-            <label for="active-user-select"><i class="fa-solid fa-user-gear"></i> Active Operator:</label>
-            <select id="active-user-select" class="active-user-select">
-              <option value="Dinesh Pachauri">Dinesh Pachauri</option>
-              <option value="Mukesh Pachauri">Mukesh Pachauri</option>
-            </select>
+          <!-- Auth Session Badge -->
+          <div id="auth-session-box" class="auth-session-box">
+            <!-- Rendered dynamically by app.js: Login button OR Active Logged In User tag -->
           </div>
 
           <div class="header-actions">
@@ -97,7 +93,7 @@
       <div class="filter-group">
         <div class="search-box">
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text" id="search-input" placeholder="Search item, notes, activity...">
+          <input type="text" id="search-input" placeholder="Search item, notes, audit trail...">
         </div>
         <select id="status-filter" class="form-select">
           <option value="all">All Statuses</option>
@@ -114,7 +110,10 @@
       <div id="items-section" class="table-card">
         <div class="card-header">
           <h2 id="section-title"><i class="fa-solid fa-box"></i> Inventory Items Ledger</h2>
-          <span class="badge badge-info" id="record-count">13 Items</span>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span id="read-only-banner" class="badge badge-info" style="display: none;"><i class="fa-solid fa-lock"></i> Read-Only (Login to Edit)</span>
+            <span class="badge badge-info" id="record-count">13 Items</span>
+          </div>
         </div>
         <div class="table-responsive">
           <table class="data-table" id="items-table">
@@ -169,7 +168,7 @@
       <!-- Activity Audit Log Section -->
       <div id="activity-section" class="table-card" style="margin-top: 1.5rem;">
         <div class="card-header">
-          <h2><i class="fa-solid fa-clock-rotate-left"></i> Activity & Audit Trail Log</h2>
+          <h2><i class="fa-solid fa-shield-halved"></i> Security & Activity Audit Log</h2>
           <div>
             <span class="badge badge-info" id="activity-count">0 Activities Logged</span>
             <button class="btn btn-sm btn-secondary" id="clear-activity-btn" style="margin-left: 0.5rem;"><i class="fa-solid fa-trash"></i> Clear Log</button>
@@ -181,9 +180,9 @@
               <tr>
                 <th>#</th>
                 <th>Timestamp</th>
-                <th>Performed By (Operator)</th>
+                <th>Authenticated User</th>
                 <th>Action Type</th>
-                <th>Activity Description & Details</th>
+                <th>Activity & Security Audit Details</th>
               </tr>
             </thead>
             <tbody id="activity-tbody">
@@ -196,26 +195,57 @@
 
     <!-- Instructions Legend Footer -->
     <footer class="legend-card">
-      <h3><i class="fa-solid fa-circle-info"></i> How the Automated Ledger & Audit Trail Works</h3>
+      <h3><i class="fa-solid fa-shield-cat"></i> Authorized Access & Security Audit Protocol</h3>
       <div class="instructions-grid">
         <div class="inst-item">
+          <i class="fa-solid fa-user-lock inst-icon" style="color: #2563eb;"></i>
+          <p><strong>Authorized Access:</strong> Only logged in users (Dinesh Pachauri or Mukesh Pachauri) can add items, edit records, change status, or log payments.</p>
+        </div>
+        <div class="inst-item">
+          <i class="fa-solid fa-clock-rotate-left inst-icon" style="color: #059669;"></i>
+          <p><strong>Time-Stamped Audit:</strong> Every single change records the exact date, time, and authenticated user ID into the audit log.</p>
+        </div>
+        <div class="inst-item">
           <span class="badge badge-pending">Pending</span>
-          <p>Entry created by one person, awaiting receipt acknowledgment from the other.</p>
+          <p>Entry created by authorized user, awaiting confirmation.</p>
         </div>
         <div class="inst-item">
           <span class="badge badge-ack">Acknowledged</span>
-          <p>Other person confirmed receipt. Added to official balance.</p>
-        </div>
-        <div class="inst-item">
-          <span class="badge badge-cleared">Cleared</span>
-          <p>Item or total account balance is paid/settled in full.</p>
-        </div>
-        <div class="inst-item">
-          <i class="fa-solid fa-user-shield inst-icon"></i>
-          <p><strong>Activity Audit:</strong> Every status change, edit, item addition, or payment transfer automatically logs the person's name and exact timestamp!</p>
+          <p>Other authorized person confirmed receipt with signature timestamp.</p>
         </div>
       </div>
     </footer>
+  </div>
+
+  <!-- MODAL: LOGIN / AUTHENTICATE -->
+  <div class="modal-overlay" id="login-modal">
+    <div class="modal-card" style="max-width: 420px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user-shield"></i> Authorized User Login</h3>
+        <button class="close-modal">&times;</button>
+      </div>
+      <form id="login-form">
+        <div class="form-group full-width" style="margin-bottom: 1rem;">
+          <label>Select Authorized User *</label>
+          <select id="login-user-select" class="form-select" style="padding: 0.75rem;" required>
+            <option value="Dinesh Pachauri">Dinesh Pachauri</option>
+            <option value="Mukesh Pachauri">Mukesh Pachauri</option>
+          </select>
+        </div>
+        <div class="form-group full-width" style="margin-bottom: 1rem;">
+          <label>Enter Security PIN *</label>
+          <input type="password" id="login-pin" class="form-input" style="padding: 0.75rem; font-size: 1.1rem; letter-spacing: 0.2em;" placeholder="••••" required>
+          <span style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem;"><i class="fa-solid fa-circle-info"></i> Default PIN for both accounts: <strong>1234</strong></span>
+        </div>
+        <div id="login-error" style="color: #dc2626; font-size: 0.85rem; font-weight: 600; display: none; margin-bottom: 1rem;">
+          <i class="fa-solid fa-triangle-exclamation"></i> Invalid Security PIN. Please try again.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary close-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket"></i> Authenticate & Login</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- MODAL: ADD / EDIT ITEM -->
