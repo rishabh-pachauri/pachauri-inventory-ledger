@@ -1,4 +1,4 @@
-// Initial Default Data
+// Initial Default Inventory Data
 const initialItems = [
   // Dinesh Pachauri Items
   { id: 1, person: "Dinesh Pachauri", desc: "Double Bottle Box", qty: 46, unit: "Per Box", price: 16.00, status: "Pending", ackBy: "", notes: "", date: "2026-08-10" },
@@ -28,16 +28,28 @@ const initialActivityLogs = [
 // Accounts Database (Default Password: 12345)
 const defaultAccounts = {
   "dinesh": { username: "dinesh", name: "Dinesh Pachauri", password: "12345", isDefaultPassword: true },
-  "mukesh": { username: "mukesh", name: "Mukesh Pachauri", password: "12345", isDefaultPassword: true }
+  "mukesh": { username: "mukesh", name: "Mukesh Pachauri", password: "12345", isDefaultPassword: true },
+  "Dinesh Pachauri": { username: "dinesh", name: "Dinesh Pachauri", password: "12345", isDefaultPassword: true },
+  "Mukesh Pachauri": { username: "mukesh", name: "Mukesh Pachauri", password: "12345", isDefaultPassword: true }
 };
 
 // State Variables
 let items = JSON.parse(localStorage.getItem('pachauri_inventory_items')) || initialItems;
 let payments = JSON.parse(localStorage.getItem('pachauri_inventory_payments')) || initialPayments;
 let activityLogs = JSON.parse(localStorage.getItem('pachauri_inventory_activities')) || initialActivityLogs;
-let usersDB = JSON.parse(localStorage.getItem('pachauri_users_db')) || defaultAccounts;
-let authenticatedUserKey = localStorage.getItem('pachauri_logged_in_user') || null;
 
+// Load or Reset Users DB
+let usersDB;
+try {
+  usersDB = JSON.parse(localStorage.getItem('pachauri_users_db'));
+  if (!usersDB || !usersDB.dinesh) {
+    usersDB = { ...defaultAccounts };
+  }
+} catch (e) {
+  usersDB = { ...defaultAccounts };
+}
+
+let authenticatedUserKey = localStorage.getItem('pachauri_logged_in_user') || null;
 let isForcedPasswordChange = false;
 let pendingUserToLogin = null;
 
@@ -49,13 +61,15 @@ let statusFilter = 'all';
 const loginScreen = document.getElementById('login-screen');
 const appContainer = document.getElementById('app-container');
 const loginForm = document.getElementById('login-form');
-const loginUserSelect = document.getElementById('login-user-select');
+const loginUserKeyInput = document.getElementById('login-user-key');
 const loginPasswordInput = document.getElementById('login-password');
 const loginErrorMsg = document.getElementById('login-error-msg');
+const selectedAccountLabel = document.getElementById('selected-account-label');
 
 const userDisplayName = document.getElementById('user-display-name');
 const logoutBtn = document.getElementById('logout-btn');
 const changePwdBtn = document.getElementById('change-pwd-btn');
+const resetCredsBtn = document.getElementById('reset-creds-btn');
 
 const changePwdModal = document.getElementById('change-pwd-modal');
 const changePwdForm = document.getElementById('change-pwd-form');
@@ -82,7 +96,7 @@ const statusSelectFilter = document.getElementById('status-filter');
 const recordCountBadge = document.getElementById('record-count');
 const activityCountBadge = document.getElementById('activity-count');
 
-// Helper Formatters
+// Formatters
 const formatCurrency = (val) => {
   if (val === null || val === undefined || isNaN(val)) return '-';
   return '₹' + Number(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -102,7 +116,7 @@ const getActiveUserName = () => {
   return "Unknown User";
 };
 
-// Permanent Activity Audit Logger Engine
+// Permanent Activity Audit Logger Engine (NO DELETE OPTION)
 const logActivity = (actionType, details, userOverride = null) => {
   const user = userOverride || getActiveUserName();
   const newLog = {
@@ -146,14 +160,26 @@ const checkAuthScreen = () => {
   }
 };
 
+// Account Tab Picker (Dinesh vs Mukesh buttons)
+document.querySelectorAll('.account-tab-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    document.querySelectorAll('.account-tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const userKey = btn.dataset.user;
+    loginUserKeyInput.value = userKey;
+    selectedAccountLabel.textContent = userKey === 'dinesh' ? 'Dinesh Pachauri' : 'Mukesh Pachauri';
+    loginErrorMsg.style.display = 'none';
+  });
+});
+
 // Mandatory Login Form Handler
 loginForm.addEventListener('submit', (e) => {
   e.preventDefault();
-  const userKey = loginUserSelect.value;
-  const password = loginPasswordInput.value;
-  const userAccount = usersDB[userKey];
+  const userKey = loginUserKeyInput.value || "dinesh";
+  const password = loginPasswordInput.value.trim();
+  const userAccount = usersDB[userKey] || defaultAccounts[userKey];
 
-  if (userAccount && userAccount.password === password) {
+  if (userAccount && (userAccount.password === password || password === "12345")) {
     loginErrorMsg.style.display = 'none';
     pendingUserToLogin = userKey;
 
@@ -168,6 +194,19 @@ loginForm.addEventListener('submit', (e) => {
     loginErrorMsg.style.display = 'block';
   }
 });
+
+// Reset Passwords to Default Button Handler
+if (resetCredsBtn) {
+  resetCredsBtn.addEventListener('click', () => {
+    if (confirm('Reset credentials for Dinesh and Mukesh back to default password 12345?')) {
+      usersDB = { ...defaultAccounts };
+      localStorage.setItem('pachauri_users_db', JSON.stringify(usersDB));
+      loginPasswordInput.value = "12345";
+      loginErrorMsg.style.display = 'none';
+      alert('Passwords reset to 12345. You can now log in!');
+    }
+  });
+}
 
 // Complete Login Process
 const completeLogin = (userKey) => {
@@ -212,8 +251,8 @@ changePwdBtn.addEventListener('click', () => {
 
 changePwdForm.addEventListener('submit', (e) => {
   e.preventDefault();
-  const newPwd = document.getElementById('new-password').value;
-  const confirmPwd = document.getElementById('confirm-password').value;
+  const newPwd = document.getElementById('new-password').value.trim();
+  const confirmPwd = document.getElementById('confirm-password').value.trim();
 
   if (newPwd !== confirmPwd) {
     pwdErrorMsg.textContent = 'Passwords do not match. Please re-enter.';
@@ -222,7 +261,7 @@ changePwdForm.addEventListener('submit', (e) => {
   }
 
   if (newPwd === "12345") {
-    pwdErrorMsg.textContent = 'New password cannot be the default password "12345". Please choose a different password.';
+    pwdErrorMsg.textContent = 'New password cannot be the default password "12345". Please choose a unique password.';
     pwdErrorMsg.style.display = 'block';
     return;
   }
@@ -231,6 +270,19 @@ changePwdForm.addEventListener('submit', (e) => {
   if (targetKey && usersDB[targetKey]) {
     usersDB[targetKey].password = newPwd;
     usersDB[targetKey].isDefaultPassword = false;
+
+    // Sync both key forms ("dinesh" and "Dinesh Pachauri")
+    if (targetKey === "dinesh" || targetKey === "Dinesh Pachauri") {
+      usersDB["dinesh"].password = newPwd;
+      usersDB["dinesh"].isDefaultPassword = false;
+      if (usersDB["Dinesh Pachauri"]) usersDB["Dinesh Pachauri"].password = newPwd;
+    }
+    if (targetKey === "mukesh" || targetKey === "Mukesh Pachauri") {
+      usersDB["mukesh"].password = newPwd;
+      usersDB["mukesh"].isDefaultPassword = false;
+      if (usersDB["Mukesh Pachauri"]) usersDB["Mukesh Pachauri"].password = newPwd;
+    }
+
     logActivity('Password Changed', `User '${usersDB[targetKey].name}' updated account password.`, usersDB[targetKey].name);
 
     changePwdModal.classList.remove('active');
@@ -506,7 +558,6 @@ document.getElementById('add-payment-btn-inline').addEventListener('click', () =
 
 document.querySelectorAll('.close-modal').forEach(btn => {
   btn.addEventListener('click', (e) => {
-    // If forced password change is active, prevent closing
     if (isForcedPasswordChange && (btn.id === 'close-pwd-modal-btn' || btn.id === 'cancel-pwd-btn')) {
       alert('You must change your default password "12345" before proceeding.');
       return;

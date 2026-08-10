@@ -20,29 +20,37 @@
       <div class="login-header">
         <div class="login-logo"><i class="fa-solid fa-boxes-stacked"></i></div>
         <h2>Pachauri Inventory Ledger</h2>
-        <p>Authorized User Login Required</p>
+        <p>Select your account & enter password to sign in</p>
+      </div>
+
+      <!-- Quick User Account Switcher Buttons -->
+      <div class="account-picker-tabs">
+        <button type="button" class="account-tab-btn active" data-user="dinesh">
+          <i class="fa-solid fa-user-check"></i> Dinesh Pachauri
+        </button>
+        <button type="button" class="account-tab-btn" data-user="mukesh">
+          <i class="fa-solid fa-user-check"></i> Mukesh Pachauri
+        </button>
       </div>
 
       <form id="login-form">
-        <div class="form-group full-width" style="margin-bottom: 1.2rem;">
-          <label><i class="fa-solid fa-user"></i> Select Account *</label>
-          <select id="login-user-select" class="form-select login-input" required>
-            <option value="dinesh">Dinesh Pachauri (Username: dinesh)</option>
-            <option value="mukesh">Mukesh Pachauri (Username: mukesh)</option>
-          </select>
-        </div>
+        <input type="hidden" id="login-user-key" value="dinesh">
 
         <div class="form-group full-width" style="margin-bottom: 1.2rem;">
-          <label><i class="fa-solid fa-key"></i> Password *</label>
-          <input type="password" id="login-password" class="form-input login-input" placeholder="Enter password" required>
+          <label><i class="fa-solid fa-key"></i> Password for <span id="selected-account-label">Dinesh Pachauri</span> *</label>
+          <input type="password" id="login-password" class="form-input login-input" placeholder="Enter password (default: 12345)" value="12345" required>
           <span class="input-hint"><i class="fa-solid fa-info-circle"></i> Initial default password: <strong>12345</strong></span>
         </div>
 
-        <div id="login-error-msg" class="alert-error-box" style="display: none;">
-          <i class="fa-solid fa-circle-exclamation"></i> Incorrect password. Please try again.
+        <div id="login-error-msg" class="alert-error-box" style="display: none; margin-bottom: 1rem;">
+          <i class="fa-solid fa-circle-exclamation"></i> Incorrect password. Please try password <strong>12345</strong> or click reset below.
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-right-to-bracket"></i> Login to Account</button>
+        <button type="submit" class="btn btn-primary btn-block" id="login-submit-btn"><i class="fa-solid fa-right-to-bracket"></i> Sign In to Account</button>
+        
+        <div style="text-align: center; margin-top: 1.2rem;">
+          <button type="button" id="reset-creds-btn" class="text-link-btn"><i class="fa-solid fa-rotate-left"></i> Reset Passwords to Default (12345)</button>
+        </div>
       </form>
     </div>
   </div>
@@ -201,7 +209,7 @@
         </div>
       </div>
 
-      <!-- Activity Audit Log Section (NO DELETE OPTION - PERMANENT IMMUTABLE LOG) -->
+      <!-- Activity Audit Log Section (PERMANENT IMMUTABLE LOG - NO DELETE BUTTON) -->
       <div id="activity-section" class="table-card" style="margin-top: 1.5rem;">
         <div class="card-header">
           <h2><i class="fa-solid fa-shield-halved"></i> Shared Activity & Security Audit Log</h2>
@@ -278,7 +286,7 @@
 
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary close-modal" id="cancel-pwd-btn">Cancel</button>
-          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Update Password & Proceed</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Save Password & Proceed</button>
         </div>
       </form>
     </div>
