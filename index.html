@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pachauri Inventory & Balance Ledger</title>
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- SheetJS for client-side Excel Export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Header -->
+    <header class="main-header">
+      <div class="header-content">
+        <div class="brand">
+          <i class="fa-solid fa-boxes-stacked brand-icon"></i>
+          <div>
+            <h1>Pachauri Inventory & Balance Ledger</h1>
+            <p>Automated Inventory Tracking & Settlement Dashboard</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button id="add-item-btn" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Item</button>
+          <button id="add-payment-btn" class="btn btn-success"><i class="fa-solid fa-hand-holding-dollar"></i> Record Payment</button>
+          <button id="export-excel-btn" class="btn btn-secondary"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- KPI Summary Banners -->
+    <section class="kpi-grid">
+      <div class="kpi-card kpi-dinesh">
+        <div class="kpi-icon"><i class="fa-solid fa-user-tag"></i></div>
+        <div class="kpi-details">
+          <span class="kpi-title">Dinesh's Total Items</span>
+          <span id="kpi-dinesh-total" class="kpi-value">₹0.00</span>
+          <span id="kpi-dinesh-count" class="kpi-subtext">0 Items Recorded</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-mukesh">
+        <div class="kpi-icon"><i class="fa-solid fa-user-check"></i></div>
+        <div class="kpi-details">
+          <span class="kpi-title">Mukesh's Total Items</span>
+          <span id="kpi-mukesh-total" class="kpi-value">₹0.00</span>
+          <span id="kpi-mukesh-count" class="kpi-subtext">0 Items Recorded</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-payments">
+        <div class="kpi-icon"><i class="fa-solid fa-money-bill-transfer"></i></div>
+        <div class="kpi-details">
+          <span class="kpi-title">Total Payments Settled</span>
+          <span id="kpi-payments-total" class="kpi-value">₹0.00</span>
+          <span id="kpi-payments-count" class="kpi-subtext">0 Transfers</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-status" id="net-balance-card">
+        <div class="kpi-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+        <div class="kpi-details">
+          <span class="kpi-title">Net Balance Status</span>
+          <span id="kpi-balance-text" class="kpi-value-lg">Calculating...</span>
+          <span id="kpi-balance-sub" class="kpi-subtext">Automated Difference</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Controls & Filter Bar -->
+    <section class="control-bar">
+      <div class="tab-group">
+        <button class="tab-btn active" data-tab="all"><i class="fa-solid fa-list-ul"></i> All Entries</button>
+        <button class="tab-btn" data-tab="dinesh"><i class="fa-solid fa-user"></i> Dinesh Pachauri</button>
+        <button class="tab-btn" data-tab="mukesh"><i class="fa-solid fa-user"></i> Mukesh Pachauri</button>
+        <button class="tab-btn" data-tab="payments"><i class="fa-solid fa-receipt"></i> Payment Log</button>
+      </div>
+
+      <div class="filter-group">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" id="search-input" placeholder="Search item description, notes...">
+        </div>
+        <select id="status-filter" class="form-select">
+          <option value="all">All Statuses</option>
+          <option value="Pending">Pending</option>
+          <option value="Acknowledged">Acknowledged</option>
+          <option value="Cleared">Cleared</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Main Content Area -->
+    <main class="content-area">
+      <!-- Items Table Container -->
+      <div id="items-section" class="table-card">
+        <div class="card-header">
+          <h2 id="section-title"><i class="fa-solid fa-box"></i> Inventory Items Ledger</h2>
+          <span class="badge badge-info" id="record-count">13 Items</span>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" id="items-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Taken By</th>
+                <th>Item Description</th>
+                <th>Qty</th>
+                <th>Unit/Pack</th>
+                <th>Price/Unit</th>
+                <th>Total Value</th>
+                <th>Status</th>
+                <th>Acknowledged By</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="items-tbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Payment Section Container -->
+      <div id="payments-section" class="table-card" style="margin-top: 1.5rem;">
+        <div class="card-header">
+          <h2><i class="fa-solid fa-money-bill-wave"></i> Payment Tracking Log</h2>
+          <button class="btn btn-sm btn-success" id="add-payment-btn-inline"><i class="fa-solid fa-plus"></i> New Payment</button>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" id="payments-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Paid By</th>
+                <th>Amount Paid</th>
+                <th>Payment Method</th>
+                <th>Notes</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="payments-tbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- Instructions Legend Footer -->
+    <footer class="legend-card">
+      <h3><i class="fa-solid fa-circle-info"></i> How the Automated Ledger Works</h3>
+      <div class="instructions-grid">
+        <div class="inst-item">
+          <span class="badge badge-pending">Pending</span>
+          <p>Entry created by one person, awaiting receipt acknowledgment from the other.</p>
+        </div>
+        <div class="inst-item">
+          <span class="badge badge-ack">Acknowledged</span>
+          <p>Other person confirmed receipt. Added to official balance.</p>
+        </div>
+        <div class="inst-item">
+          <span class="badge badge-cleared">Cleared</span>
+          <p>Item or total account balance is paid/settled in full.</p>
+        </div>
+        <div class="inst-item">
+          <i class="fa-solid fa-calculator inst-icon"></i>
+          <p>Total values = Quantity × Price per unit. Blank price items are recorded for inventory exchange.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- MODAL: ADD / EDIT ITEM -->
+  <div class="modal-overlay" id="item-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="item-modal-title"><i class="fa-solid fa-box-open"></i> Add New Inventory Item</h3>
+        <button class="close-modal">&times;</button>
+      </div>
+      <form id="item-form">
+        <input type="hidden" id="item-id">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label>Person Taking Item *</label>
+            <select id="item-person" class="form-select" required>
+              <option value="Dinesh Pachauri">Dinesh Pachauri</option>
+              <option value="Mukesh Pachauri">Mukesh Pachauri</option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label>Item Description *</label>
+            <input type="text" id="item-desc" class="form-input" placeholder="e.g. Double Bottle Box" required>
+          </div>
+          <div class="form-group">
+            <label>Quantity *</label>
+            <input type="number" id="item-qty" class="form-input" min="1" step="1" placeholder="e.g. 10" required>
+          </div>
+          <div class="form-group">
+            <label>Unit / Pack</label>
+            <input type="text" id="item-unit" class="form-input" placeholder="e.g. Per Box, Pack of 6">
+          </div>
+          <div class="form-group">
+            <label>Price per Unit (₹)</label>
+            <input type="number" id="item-price" class="form-input" min="0" step="0.01" placeholder="e.g. 16.00">
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="item-status" class="form-select">
+              <option value="Pending">Pending</option>
+              <option value="Acknowledged">Acknowledged</option>
+              <option value="Cleared">Cleared</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Acknowledged By</label>
+            <input type="text" id="item-ack" class="form-input" placeholder="Name of person acknowledging">
+          </div>
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="item-date" class="form-input">
+          </div>
+          <div class="form-group full-width">
+            <label>Notes</label>
+            <input type="text" id="item-notes" class="form-input" placeholder="Additional notes...">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary close-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Item</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: RECORD PAYMENT -->
+  <div class="modal-overlay" id="payment-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-receipt"></i> Log Payment Transfer</h3>
+        <button class="close-modal">&times;</button>
+      </div>
+      <form id="payment-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Date *</label>
+            <input type="date" id="pay-date" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label>Paid By *</label>
+            <select id="pay-by" class="form-select" required>
+              <option value="Dinesh Pachauri">Dinesh Pachauri</option>
+              <option value="Mukesh Pachauri">Mukesh Pachauri</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Amount Paid (₹) *</label>
+            <input type="number" id="pay-amount" class="form-input" min="0.01" step="0.01" placeholder="e.g. 5000" required>
+          </div>
+          <div class="form-group">
+            <label>Payment Method</label>
+            <select id="pay-method" class="form-select">
+              <option value="UPI / GPay">UPI / GPay / PhonePe</option>
+              <option value="Cash">Cash</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+              <option value="Goods Exchange">Goods Exchange</option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label>Notes</label>
+            <input type="text" id="pay-notes" class="form-input" placeholder="e.g. Part payment for inventory balance">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary close-modal">Cancel</button>
+          <button type="submit" class="btn btn-success">Record Payment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
