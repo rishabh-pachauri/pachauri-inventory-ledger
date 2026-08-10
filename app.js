@@ -25,29 +25,49 @@ const initialActivityLogs = [
   { id: 2, timestamp: "2026-08-10 10:05:00", operator: "Mukesh Pachauri", actionType: "Item Added", details: "Initial entry created: 6 inventory items added for Mukesh Pachauri (Total: ₹8,391.00)" }
 ];
 
-// Authorized User Credentials (PIN: 1234)
-const USER_CREDENTIALS = {
-  "Dinesh Pachauri": "1234",
-  "Mukesh Pachauri": "1234"
+// Accounts Database (Default Password: 12345)
+const defaultAccounts = {
+  "dinesh": { username: "dinesh", name: "Dinesh Pachauri", password: "12345", isDefaultPassword: true },
+  "mukesh": { username: "mukesh", name: "Mukesh Pachauri", password: "12345", isDefaultPassword: true }
 };
 
 // State Variables
 let items = JSON.parse(localStorage.getItem('pachauri_inventory_items')) || initialItems;
 let payments = JSON.parse(localStorage.getItem('pachauri_inventory_payments')) || initialPayments;
 let activityLogs = JSON.parse(localStorage.getItem('pachauri_inventory_activities')) || initialActivityLogs;
-let authenticatedUser = localStorage.getItem('pachauri_auth_user') || null;
+let usersDB = JSON.parse(localStorage.getItem('pachauri_users_db')) || defaultAccounts;
+let authenticatedUserKey = localStorage.getItem('pachauri_logged_in_user') || null;
 
-let pendingAuthAction = null;
+let isForcedPasswordChange = false;
+let pendingUserToLogin = null;
+
 let activeTab = 'all';
 let searchQuery = '';
 let statusFilter = 'all';
 
 // DOM Elements
+const loginScreen = document.getElementById('login-screen');
+const appContainer = document.getElementById('app-container');
+const loginForm = document.getElementById('login-form');
+const loginUserSelect = document.getElementById('login-user-select');
+const loginPasswordInput = document.getElementById('login-password');
+const loginErrorMsg = document.getElementById('login-error-msg');
+
+const userDisplayName = document.getElementById('user-display-name');
+const logoutBtn = document.getElementById('logout-btn');
+const changePwdBtn = document.getElementById('change-pwd-btn');
+
+const changePwdModal = document.getElementById('change-pwd-modal');
+const changePwdForm = document.getElementById('change-pwd-form');
+const pwdForceAlert = document.getElementById('pwd-force-alert');
+const pwdErrorMsg = document.getElementById('pwd-error-msg');
+const closePwdModalBtn = document.getElementById('close-pwd-modal-btn');
+const cancelPwdBtn = document.getElementById('cancel-pwd-btn');
+
 const itemsTbody = document.getElementById('items-tbody');
 const paymentsTbody = document.getElementById('payments-tbody');
 const activityTbody = document.getElementById('activity-tbody');
-const authSessionBox = document.getElementById('auth-session-box');
-const readOnlyBanner = document.getElementById('read-only-banner');
+
 const kpiDineshTotal = document.getElementById('kpi-dinesh-total');
 const kpiDineshCount = document.getElementById('kpi-dinesh-count');
 const kpiMukeshTotal = document.getElementById('kpi-mukesh-total');
@@ -75,9 +95,16 @@ const getNowFormatted = () => {
   return `${dateStr} ${timeStr}`;
 };
 
-// Activity Audit Logger Engine
+const getActiveUserName = () => {
+  if (authenticatedUserKey && usersDB[authenticatedUserKey]) {
+    return usersDB[authenticatedUserKey].name;
+  }
+  return "Unknown User";
+};
+
+// Permanent Activity Audit Logger Engine
 const logActivity = (actionType, details, userOverride = null) => {
-  const user = userOverride || authenticatedUser || "Unauthenticated Guest";
+  const user = userOverride || getActiveUserName();
   const newLog = {
     id: activityLogs.length > 0 ? Math.max(...activityLogs.map(a => a.id)) + 1 : 1,
     timestamp: getNowFormatted(),
@@ -94,87 +121,128 @@ const saveState = () => {
   localStorage.setItem('pachauri_inventory_items', JSON.stringify(items));
   localStorage.setItem('pachauri_inventory_payments', JSON.stringify(payments));
   localStorage.setItem('pachauri_inventory_activities', JSON.stringify(activityLogs));
-  if (authenticatedUser) {
-    localStorage.setItem('pachauri_auth_user', authenticatedUser);
+  localStorage.setItem('pachauri_users_db', JSON.stringify(usersDB));
+  
+  if (authenticatedUserKey) {
+    localStorage.setItem('pachauri_logged_in_user', authenticatedUserKey);
   } else {
-    localStorage.removeItem('pachauri_auth_user');
+    localStorage.removeItem('pachauri_logged_in_user');
   }
+
   updateKPIs();
-  renderAuthHeader();
+  checkAuthScreen();
   renderTables();
 };
 
-// Render Header Authentication Controls
-const renderAuthHeader = () => {
-  if (authenticatedUser) {
-    const isDinesh = authenticatedUser.includes('Dinesh');
-    authSessionBox.innerHTML = `
-      <div class="auth-user-tag">
-        <span class="status-dot"></span>
-        <span><i class="fa-solid fa-user-shield"></i> ${authenticatedUser}</span>
-      </div>
-      <button id="logout-btn" class="btn btn-logout" title="Logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
-    `;
-    if (readOnlyBanner) readOnlyBanner.style.display = 'none';
-
-    document.getElementById('logout-btn').addEventListener('click', () => {
-      logActivity('User Logged Out', `User ${authenticatedUser} logged out of session.`);
-      authenticatedUser = null;
-      saveState();
-    });
+// Check & Toggle Mandatory Login Screen
+const checkAuthScreen = () => {
+  if (!authenticatedUserKey || !usersDB[authenticatedUserKey]) {
+    loginScreen.style.display = 'flex';
+    appContainer.style.display = 'none';
   } else {
-    authSessionBox.innerHTML = `
-      <button id="login-trigger-btn" class="btn btn-login"><i class="fa-solid fa-key"></i> Login as User</button>
-    `;
-    if (readOnlyBanner) readOnlyBanner.style.display = 'inline-block';
-
-    document.getElementById('login-trigger-btn').addEventListener('click', () => {
-      openLoginModal();
-    });
+    loginScreen.style.display = 'none';
+    appContainer.style.display = 'flex';
+    userDisplayName.textContent = usersDB[authenticatedUserKey].name;
   }
 };
 
-// Authorization Guard Function
-const requireAuth = (callback) => {
-  if (authenticatedUser) {
-    callback();
-  } else {
-    pendingAuthAction = callback;
-    openLoginModal();
-  }
-};
-
-// Open Login Modal
-const loginModal = document.getElementById('login-modal');
-const loginForm = document.getElementById('login-form');
-const loginError = document.getElementById('login-error');
-
-const openLoginModal = () => {
-  loginForm.reset();
-  loginError.style.display = 'none';
-  loginModal.classList.add('active');
-  document.getElementById('login-pin').focus();
-};
-
-// Handle Login Form Submit
+// Mandatory Login Form Handler
 loginForm.addEventListener('submit', (e) => {
   e.preventDefault();
-  const selectedUser = document.getElementById('login-user-select').value;
-  const enteredPin = document.getElementById('login-pin').value;
+  const userKey = loginUserSelect.value;
+  const password = loginPasswordInput.value;
+  const userAccount = usersDB[userKey];
 
-  if (USER_CREDENTIALS[selectedUser] === enteredPin) {
-    authenticatedUser = selectedUser;
-    logActivity('User Logged In', `User ${authenticatedUser} successfully authenticated via security PIN.`, authenticatedUser);
-    loginModal.classList.remove('active');
-    saveState();
+  if (userAccount && userAccount.password === password) {
+    loginErrorMsg.style.display = 'none';
+    pendingUserToLogin = userKey;
 
-    if (pendingAuthAction) {
-      const action = pendingAuthAction;
-      pendingAuthAction = null;
-      action();
+    // Check if user is using default password '12345'
+    if (userAccount.isDefaultPassword || password === "12345") {
+      isForcedPasswordChange = true;
+      openChangePasswordModal(true);
+    } else {
+      completeLogin(userKey);
     }
   } else {
-    loginError.style.display = 'block';
+    loginErrorMsg.style.display = 'block';
+  }
+});
+
+// Complete Login Process
+const completeLogin = (userKey) => {
+  authenticatedUserKey = userKey;
+  saveState();
+  logActivity('User Logged In', `Account '${usersDB[userKey].name}' logged in successfully.`);
+};
+
+// Logout Handler
+logoutBtn.addEventListener('click', () => {
+  if (authenticatedUserKey && usersDB[authenticatedUserKey]) {
+    logActivity('User Logged Out', `Account '${usersDB[authenticatedUserKey].name}' logged out.`);
+  }
+  authenticatedUserKey = null;
+  saveState();
+});
+
+// Change Password Modal Handler
+const openChangePasswordModal = (isForced = false) => {
+  changePwdForm.reset();
+  pwdErrorMsg.style.display = 'none';
+  
+  if (isForced) {
+    pwdForceAlert.style.display = 'block';
+    closePwdModalBtn.style.display = 'none';
+    cancelPwdBtn.style.display = 'none';
+    document.getElementById('pwd-modal-title').innerHTML = '<i class="fa-solid fa-user-shield"></i> Mandatory Password Change';
+  } else {
+    pwdForceAlert.style.display = 'none';
+    closePwdModalBtn.style.display = 'block';
+    cancelPwdBtn.style.display = 'inline-block';
+    document.getElementById('pwd-modal-title').innerHTML = '<i class="fa-solid fa-key"></i> Change Password';
+  }
+  changePwdModal.classList.add('active');
+  document.getElementById('new-password').focus();
+};
+
+changePwdBtn.addEventListener('click', () => {
+  isForcedPasswordChange = false;
+  openChangePasswordModal(false);
+});
+
+changePwdForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const newPwd = document.getElementById('new-password').value;
+  const confirmPwd = document.getElementById('confirm-password').value;
+
+  if (newPwd !== confirmPwd) {
+    pwdErrorMsg.textContent = 'Passwords do not match. Please re-enter.';
+    pwdErrorMsg.style.display = 'block';
+    return;
+  }
+
+  if (newPwd === "12345") {
+    pwdErrorMsg.textContent = 'New password cannot be the default password "12345". Please choose a different password.';
+    pwdErrorMsg.style.display = 'block';
+    return;
+  }
+
+  const targetKey = isForcedPasswordChange ? pendingUserToLogin : authenticatedUserKey;
+  if (targetKey && usersDB[targetKey]) {
+    usersDB[targetKey].password = newPwd;
+    usersDB[targetKey].isDefaultPassword = false;
+    logActivity('Password Changed', `User '${usersDB[targetKey].name}' updated account password.`, usersDB[targetKey].name);
+
+    changePwdModal.classList.remove('active');
+
+    if (isForcedPasswordChange) {
+      isForcedPasswordChange = false;
+      completeLogin(targetKey);
+      pendingUserToLogin = null;
+    } else {
+      saveState();
+      alert('Password updated successfully!');
+    }
   }
 });
 
@@ -240,7 +308,7 @@ const updateKPIs = () => {
 // Action Badge CSS Helper
 const getActionBadgeClass = (actionType) => {
   if (actionType.includes('Added')) return 'badge-act-add';
-  if (actionType.includes('Updated') || actionType.includes('Edit')) return 'badge-act-edit';
+  if (actionType.includes('Updated') || actionType.includes('Edit') || actionType.includes('Password')) return 'badge-act-edit';
   if (actionType.includes('Status')) return 'badge-act-status';
   if (actionType.includes('Deleted')) return 'badge-act-delete';
   if (actionType.includes('Payment')) return 'badge-act-pay';
@@ -339,7 +407,7 @@ const renderTables = () => {
     });
   }
 
-  // Render Activity Log Tbody
+  // Render Permanent Shared Activity Audit Log (NO DELETE OPTION)
   if (activityTbody) {
     activityTbody.innerHTML = '';
     let filteredLogs = activityLogs;
@@ -392,21 +460,7 @@ statusSelectFilter.addEventListener('change', (e) => {
   renderTables();
 });
 
-// Clear Activity Log (Guarded)
-const clearActivityBtn = document.getElementById('clear-activity-btn');
-if (clearActivityBtn) {
-  clearActivityBtn.addEventListener('click', () => {
-    requireAuth(() => {
-      if (confirm('Clear activity log audit trail?')) {
-        activityLogs = [];
-        logActivity('Log Reset', `Activity audit trail was reset by ${authenticatedUser}`);
-        saveState();
-      }
-    });
-  });
-}
-
-// Inline Status Change Handler (Guarded by Authentication)
+// Inline Status Change Handler
 itemsTbody.addEventListener('change', (e) => {
   if (e.target.classList.contains('status-select')) {
     const selectElem = e.target;
@@ -416,19 +470,12 @@ itemsTbody.addEventListener('change', (e) => {
 
     if (item) {
       const oldStatus = item.status;
-      requireAuth(() => {
-        item.status = newStatus;
-        if (newStatus === 'Acknowledged' && !item.ackBy) {
-          item.ackBy = authenticatedUser;
-        }
-        logActivity('Status Updated', `Status of '${item.desc}' (${item.person}) changed from '${oldStatus}' to '${newStatus}' by ${authenticatedUser}`);
-        saveState();
-      });
-
-      // If user cancels auth prompt, revert select to old value
-      if (!authenticatedUser) {
-        selectElem.value = oldStatus;
+      item.status = newStatus;
+      if (newStatus === 'Acknowledged' && !item.ackBy) {
+        item.ackBy = getActiveUserName();
       }
+      logActivity('Status Updated', `Status of '${item.desc}' (${item.person}) changed from '${oldStatus}' to '${newStatus}' by ${getActiveUserName()}`);
+      saveState();
     }
   }
 });
@@ -438,75 +485,72 @@ const itemModal = document.getElementById('item-modal');
 const paymentModal = document.getElementById('payment-modal');
 
 document.getElementById('add-item-btn').addEventListener('click', () => {
-  requireAuth(() => {
-    document.getElementById('item-form').reset();
-    document.getElementById('item-id').value = '';
-    document.getElementById('item-modal-title').innerHTML = '<i class="fa-solid fa-box-open"></i> Add New Inventory Item';
-    document.getElementById('item-date').value = new Date().toISOString().split('T')[0];
-    itemModal.classList.add('active');
-  });
+  document.getElementById('item-form').reset();
+  document.getElementById('item-id').value = '';
+  document.getElementById('item-modal-title').innerHTML = '<i class="fa-solid fa-box-open"></i> Add New Inventory Item';
+  document.getElementById('item-date').value = new Date().toISOString().split('T')[0];
+  itemModal.classList.add('active');
 });
 
 document.getElementById('add-payment-btn').addEventListener('click', () => {
-  requireAuth(() => {
-    document.getElementById('payment-form').reset();
-    document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
-    paymentModal.classList.add('active');
-  });
+  document.getElementById('payment-form').reset();
+  document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
+  paymentModal.classList.add('active');
 });
 
 document.getElementById('add-payment-btn-inline').addEventListener('click', () => {
-  requireAuth(() => {
-    document.getElementById('payment-form').reset();
-    document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
-    paymentModal.classList.add('active');
-  });
+  document.getElementById('payment-form').reset();
+  document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
+  paymentModal.classList.add('active');
 });
 
 document.querySelectorAll('.close-modal').forEach(btn => {
-  btn.addEventListener('click', () => {
+  btn.addEventListener('click', (e) => {
+    // If forced password change is active, prevent closing
+    if (isForcedPasswordChange && (btn.id === 'close-pwd-modal-btn' || btn.id === 'cancel-pwd-btn')) {
+      alert('You must change your default password "12345" before proceeding.');
+      return;
+    }
     itemModal.classList.remove('active');
     paymentModal.classList.remove('active');
-    loginModal.classList.remove('active');
+    changePwdModal.classList.remove('active');
   });
 });
 
-// Add / Edit Item Form Submission (Guarded)
+// Add / Edit Item Form Submission
 document.getElementById('item-form').addEventListener('submit', (e) => {
   e.preventDefault();
-  requireAuth(() => {
-    const idVal = document.getElementById('item-id').value;
-    const person = document.getElementById('item-person').value;
-    const desc = document.getElementById('item-desc').value;
-    const qty = Number(document.getElementById('item-qty').value);
-    const unit = document.getElementById('item-unit').value;
-    const priceVal = document.getElementById('item-price').value;
-    const price = priceVal !== '' ? Number(priceVal) : null;
-    const status = document.getElementById('item-status').value;
-    const ackBy = document.getElementById('item-ack').value;
-    const date = document.getElementById('item-date').value;
-    const notes = document.getElementById('item-notes').value;
+  const idVal = document.getElementById('item-id').value;
+  const person = document.getElementById('item-person').value;
+  const desc = document.getElementById('item-desc').value;
+  const qty = Number(document.getElementById('item-qty').value);
+  const unit = document.getElementById('item-unit').value;
+  const priceVal = document.getElementById('item-price').value;
+  const price = priceVal !== '' ? Number(priceVal) : null;
+  const status = document.getElementById('item-status').value;
+  const ackBy = document.getElementById('item-ack').value;
+  const date = document.getElementById('item-date').value;
+  const notes = document.getElementById('item-notes').value;
 
-    if (idVal) {
-      // Edit existing
-      const item = items.find(i => i.id === Number(idVal));
-      if (item) {
-        Object.assign(item, { person, desc, qty, unit, price, status, ackBy, date, notes });
-        logActivity('Item Updated', `Updated item details for '${desc}' (Taken by ${person}, Qty: ${qty}, Price: ${formatCurrency(price)})`);
-      }
-    } else {
-      // Add new
-      const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
-      items.push({ id: newId, person, desc, qty, unit, price, status, ackBy, date, notes });
-      logActivity('Item Added', `Added item '${desc}' (Qty: ${qty} ${unit || ''}) taken by ${person} at ${formatCurrency(price)}/unit`);
+  if (idVal) {
+    // Edit existing
+    const item = items.find(i => i.id === Number(idVal));
+    if (item) {
+      Object.assign(item, { person, desc, qty, unit, price, status, ackBy, date, notes });
+      logActivity('Item Updated', `Updated item details for '${desc}' (Taken by ${person}, Qty: ${qty}, Price: ${formatCurrency(price)})`);
     }
+  } else {
+    // Add new
+    const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
+    items.push({ id: newId, person, desc, qty, unit, price, status, ackBy, date, notes });
+    logActivity('Item Added', `Added item '${desc}' (Qty: ${qty} ${unit || ''}) taken by ${person} at ${formatCurrency(price)}/unit`);
+  }
 
-    itemModal.classList.remove('active');
-    saveState();
-  });
+  itemModal.classList.remove('active');
+  saveState();
 });
 
-// Edit & Delete Item Buttons (Guarded)
+// Edit & Delete Item Buttons
 itemsTbody.addEventListener('click', (e) => {
   const editBtn = e.target.closest('.edit-item-btn');
   const deleteBtn = e.target.closest('.delete-item-btn');
@@ -515,74 +559,62 @@ itemsTbody.addEventListener('click', (e) => {
     const id = Number(editBtn.dataset.id);
     const item = items.find(i => i.id === id);
     if (item) {
-      requireAuth(() => {
-        document.getElementById('item-id').value = item.id;
-        document.getElementById('item-person').value = item.person;
-        document.getElementById('item-desc').value = item.desc;
-        document.getElementById('item-qty').value = item.qty;
-        document.getElementById('item-unit').value = item.unit || '';
-        document.getElementById('item-price').value = item.price !== null ? item.price : '';
-        document.getElementById('item-status').value = item.status;
-        document.getElementById('item-ack').value = item.ackBy || '';
-        document.getElementById('item-date').value = item.date || '';
-        document.getElementById('item-notes').value = item.notes || '';
-        document.getElementById('item-modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edit Inventory Item';
-        itemModal.classList.add('active');
-      });
+      document.getElementById('item-id').value = item.id;
+      document.getElementById('item-person').value = item.person;
+      document.getElementById('item-desc').value = item.desc;
+      document.getElementById('item-qty').value = item.qty;
+      document.getElementById('item-unit').value = item.unit || '';
+      document.getElementById('item-price').value = item.price !== null ? item.price : '';
+      document.getElementById('item-status').value = item.status;
+      document.getElementById('item-ack').value = item.ackBy || '';
+      document.getElementById('item-date').value = item.date || '';
+      document.getElementById('item-notes').value = item.notes || '';
+      document.getElementById('item-modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edit Inventory Item';
+      itemModal.classList.add('active');
     }
   }
 
   if (deleteBtn) {
     const id = Number(deleteBtn.dataset.id);
     const item = items.find(i => i.id === id);
-    if (item) {
-      requireAuth(() => {
-        if (confirm(`Are you sure you want to delete '${item.desc}'?`)) {
-          logActivity('Item Deleted', `Deleted inventory item '${item.desc}' (Taken by ${item.person}, Value: ${formatCurrency(item.price ? item.qty * item.price : null)})`);
-          items = items.filter(i => i.id !== id);
-          saveState();
-        }
-      });
+    if (item && confirm(`Are you sure you want to delete '${item.desc}'?`)) {
+      logActivity('Item Deleted', `Deleted inventory item '${item.desc}' (Taken by ${item.person}, Value: ${formatCurrency(item.price ? item.qty * item.price : null)})`);
+      items = items.filter(i => i.id !== id);
+      saveState();
     }
   }
 });
 
-// Record Payment Submission (Guarded)
+// Record Payment Submission
 document.getElementById('payment-form').addEventListener('submit', (e) => {
   e.preventDefault();
-  requireAuth(() => {
-    const date = document.getElementById('pay-date').value;
-    const paidBy = document.getElementById('pay-by').value;
-    const amount = Number(document.getElementById('pay-amount').value);
-    const method = document.getElementById('pay-method').value;
-    const notes = document.getElementById('pay-notes').value;
+  const date = document.getElementById('pay-date').value;
+  const paidBy = document.getElementById('pay-by').value;
+  const amount = Number(document.getElementById('pay-amount').value);
+  const method = document.getElementById('pay-method').value;
+  const notes = document.getElementById('pay-notes').value;
 
-    payments.push({ date, paidBy, amount, method, notes });
-    logActivity('Payment Recorded', `Recorded payment transfer of ${formatCurrency(amount)} paid by ${paidBy} via ${method}`);
-    paymentModal.classList.remove('active');
-    saveState();
-  });
+  payments.push({ date, paidBy, amount, method, notes });
+  logActivity('Payment Recorded', `Recorded payment transfer of ${formatCurrency(amount)} paid by ${paidBy} via ${method}`);
+  paymentModal.classList.remove('active');
+  saveState();
 });
 
-// Delete Payment (Guarded)
+// Delete Payment
 paymentsTbody.addEventListener('click', (e) => {
   const deleteBtn = e.target.closest('.delete-pay-btn');
   if (deleteBtn) {
     const idx = Number(deleteBtn.dataset.idx);
     const pay = payments[idx];
-    if (pay) {
-      requireAuth(() => {
-        if (confirm('Delete this payment record?')) {
-          logActivity('Payment Deleted', `Deleted payment record of ${formatCurrency(pay.amount)} paid by ${pay.paidBy}`);
-          payments.splice(idx, 1);
-          saveState();
-        }
-      });
+    if (pay && confirm('Delete this payment record?')) {
+      logActivity('Payment Deleted', `Deleted payment record of ${formatCurrency(pay.amount)} paid by ${pay.paidBy}`);
+      payments.splice(idx, 1);
+      saveState();
     }
   }
 });
 
-// Export to Excel Button including Security & Activity Audit Sheet
+// Export to Excel Button including Permanent Activity Audit Sheet
 document.getElementById('export-excel-btn').addEventListener('click', () => {
   const wb = XLSX.utils.book_new();
 
@@ -626,7 +658,7 @@ document.getElementById('export-excel-btn').addEventListener('click', () => {
   const actRows = activityLogs.map((a, idx) => ({
     "#": idx + 1,
     "Timestamp": a.timestamp,
-    "Authenticated User": a.operator,
+    "Logged In User": a.operator,
     "Action Type": a.actionType,
     "Details": a.details
   }));
@@ -639,12 +671,12 @@ document.getElementById('export-excel-btn').addEventListener('click', () => {
   XLSX.utils.book_append_sheet(wb, wsDinesh, "Dinesh Items");
   XLSX.utils.book_append_sheet(wb, wsMukesh, "Mukesh Items");
   XLSX.utils.book_append_sheet(wb, wsPayments, "Payments");
-  XLSX.utils.book_append_sheet(wb, wsActivities, "Security Audit Log");
+  XLSX.utils.book_append_sheet(wb, wsActivities, "Shared Activity Audit Log");
 
   XLSX.writeFile(wb, "Pachauri_Inventory_Export.xlsx");
 });
 
 // Initial Render
 updateKPIs();
-renderAuthHeader();
+checkAuthScreen();
 renderTables();

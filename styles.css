@@ -40,6 +40,104 @@ body {
   padding: 1.5rem;
 }
 
+/* MANDATORY LOGIN SCREEN OVERLAY */
+.login-screen-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+}
+
+.login-box-card {
+  background: #ffffff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 440px;
+  padding: 2.25rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+  text-align: left;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+
+.login-logo {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #1b365d 0%, #2563eb 100%);
+  color: #fbbf24;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto 1rem auto;
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+}
+
+.login-header h2 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.login-header p {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+.login-input {
+  padding: 0.75rem 1rem !important;
+  font-size: 0.95rem !important;
+  border-radius: 10px !important;
+}
+
+.input-hint {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.35rem;
+  display: block;
+}
+
+.btn-block {
+  width: 100%;
+  padding: 0.85rem;
+  font-size: 1rem;
+  justify-content: center;
+  border-radius: 10px;
+  margin-top: 0.5rem;
+}
+
+.alert-error-box {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.825rem;
+  font-weight: 600;
+}
+
+.alert-info-box {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.825rem;
+  line-height: 1.4;
+}
+
 .app-container {
   max-width: 1350px;
   margin: 0 auto;
@@ -115,7 +213,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: #ffffff;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .status-dot {
@@ -124,15 +222,6 @@ body {
   border-radius: 50%;
   background: #10b981;
   box-shadow: 0 0 8px #10b981;
-}
-
-.btn-login {
-  background: #fbbf24;
-  color: #1e293b;
-  font-weight: 700;
-}
-.btn-login:hover {
-  background: #f59e0b;
 }
 
 .btn-logout {
@@ -444,7 +533,6 @@ body {
 
 .operator-dinesh { background: #eff6ff; color: #1d4ed8; }
 .operator-mukesh { background: #f0fdf4; color: #15803d; }
-.operator-guest { background: #f1f5f9; color: #64748b; }
 
 .timestamp-sub {
   font-size: 0.78rem;
