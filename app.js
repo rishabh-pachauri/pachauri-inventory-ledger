@@ -26,28 +26,81 @@ const initialActivityLogs = [
 
 /* =============================================
    AUTH: Accounts (stored in localStorage)
-   Keys: "dinesh" and "mukesh" only
+   Canonical key: 'pach_users_v2' (permanent — never change this)
+   Session key:   'pach_session_v2'
 ============================================= */
-const USERS_KEY     = 'pach_users';
-const SESSION_KEY   = 'pach_session';
-const ITEMS_KEY     = 'pach_items';
-const PAYMENTS_KEY  = 'pach_payments';
-const ACTIVITY_KEY  = 'pach_activity';
+const USERS_KEY    = 'pach_users_v2';    // FINAL stable key — never rename again
+const SESSION_KEY  = 'pach_session_v2'; // FINAL stable key — never rename again
+const ITEMS_KEY    = 'pach_items';
+const PAYMENTS_KEY = 'pach_payments';
+const ACTIVITY_KEY = 'pach_activity';
 
+// ALL old key names we've ever used — migrate passwords from any of these if found
+const LEGACY_USER_KEYS = [
+  'pach_users',
+  'pachauri_users_db'
+];
+
+// Canonical default accounts (only used when NO data exists anywhere)
+const DEFAULT_USERS = {
+  dinesh: { name: 'Dinesh Pachauri', password: '12345', isDefault: true },
+  mukesh: { name: 'Mukesh Pachauri', password: '12345', isDefault: true }
+};
+
+/**
+ * loadUsers()
+ * Load accounts with strict priority:
+ * 1. Try canonical key (pach_users_v2) — most up-to-date
+ * 2. Try legacy keys in order — migrate if found
+ * 3. Return fresh defaults only if nothing found anywhere
+ *
+ * A valid DB must be an object with BOTH dinesh and mukesh entries.
+ */
 function loadUsers() {
-  try {
-    const raw = localStorage.getItem(USERS_KEY);
-    const db  = raw ? JSON.parse(raw) : null;
-    // Validate structure — must have both dinesh and mukesh
-    if (db && db.dinesh && db.mukesh) return db;
-  } catch(e) {}
-  // Return fresh defaults
-  return {
-    dinesh: { name: "Dinesh Pachauri", password: "12345", isDefault: true },
-    mukesh: { name: "Mukesh Pachauri", password: "12345", isDefault: true }
-  };
+  // 1. Try canonical key first
+  const parsed = tryParseUsers(localStorage.getItem(USERS_KEY));
+  if (parsed) return parsed;
+
+  // 2. Try legacy keys — migrate if found
+  for (const legacyKey of LEGACY_USER_KEYS) {
+    const legacyParsed = tryParseUsers(localStorage.getItem(legacyKey));
+    if (legacyParsed) {
+      // Migrate: write to canonical key so we never lose this again
+      localStorage.setItem(USERS_KEY, JSON.stringify(legacyParsed));
+      console.log('[Auth] Migrated users from legacy key:', legacyKey);
+      return legacyParsed;
+    }
+  }
+
+  // 3. Nothing found — brand new user, return defaults
+  return JSON.parse(JSON.stringify(DEFAULT_USERS)); // deep copy so we don't mutate the constant
 }
 
+/**
+ * tryParseUsers(raw)
+ * Parse a raw JSON string and validate it has both dinesh + mukesh.
+ * Returns the object if valid, null otherwise.
+ */
+function tryParseUsers(raw) {
+  if (!raw) return null;
+  try {
+    const db = JSON.parse(raw);
+    if (
+      db &&
+      typeof db === 'object' &&
+      db.dinesh && typeof db.dinesh.password === 'string' &&
+      db.mukesh && typeof db.mukesh.password === 'string'
+    ) {
+      return db;
+    }
+  } catch(e) {}
+  return null;
+}
+
+/**
+ * saveUsers(db)
+ * Always write to the canonical key. Never write to legacy keys.
+ */
 function saveUsers(db) {
   localStorage.setItem(USERS_KEY, JSON.stringify(db));
 }
@@ -55,10 +108,9 @@ function saveUsers(db) {
 /* =============================================
    STATE
 ============================================= */
-let usersDB           = loadUsers();
-let sessionKey        = localStorage.getItem(SESSION_KEY) || null;  // "dinesh" or "mukesh"
-let pendingLoginKey   = null;   // user key waiting for forced password change
-let forcedPwdChange   = false;
+let usersDB         = loadUsers();
+let sessionKey      = localStorage.getItem(SESSION_KEY) || null; // 'dinesh' or 'mukesh'
+let pendingLoginKey = null;   // user key awaiting forced password change
 
 let items        = JSON.parse(localStorage.getItem(ITEMS_KEY))    || initialItems;
 let payments     = JSON.parse(localStorage.getItem(PAYMENTS_KEY)) || initialPayments;
@@ -81,12 +133,12 @@ const now = () => {
   return d.toISOString().split('T')[0] + ' ' + d.toTimeString().split(' ')[0];
 };
 
-const activeUser = () => sessionKey ? usersDB[sessionKey]?.name || 'Unknown' : 'Unknown';
+const activeUser = () => sessionKey ? (usersDB[sessionKey]?.name || 'Unknown') : 'Unknown';
 
-const nextId = (arr) => arr.length ? Math.max(...arr.map(x=>x.id)) + 1 : 1;
+const nextId = (arr) => arr.length ? Math.max(...arr.map(x => x.id)) + 1 : 1;
 
 /* =============================================
-   PERSISTENT AUDIT LOG (no delete)
+   PERSISTENT AUDIT LOG (immutable — no delete)
 ============================================= */
 function logActivity(action, details) {
   activityLogs.unshift({
@@ -99,11 +151,17 @@ function logActivity(action, details) {
   localStorage.setItem(ACTIVITY_KEY, JSON.stringify(activityLogs));
 }
 
+/**
+ * saveAll()
+ * Persist all app state to localStorage.
+ * NOTE: Users are saved with saveUsers() separately when credentials change.
+ * saveAll() also saves users to make sure state is always consistent.
+ */
 function saveAll() {
   localStorage.setItem(ITEMS_KEY,    JSON.stringify(items));
   localStorage.setItem(PAYMENTS_KEY, JSON.stringify(payments));
   localStorage.setItem(ACTIVITY_KEY, JSON.stringify(activityLogs));
-  saveUsers(usersDB);
+  saveUsers(usersDB); // always persist current usersDB
   updateKPIs();
   renderTables();
 }
@@ -131,10 +189,24 @@ function showApp() {
   loginScreen.style.display    = 'none';
   pwdChangeScreen.style.display= 'none';
   appEl.style.display          = 'flex';
-  document.getElementById('header-user-name').textContent = usersDB[sessionKey].name;
+
+  const user = usersDB[sessionKey];
+  document.getElementById('header-user-name').textContent = user.name;
+
+  // Hide the 'Change Password' button once the user has set a personal password.
+  // isDefault:false means they've already gone through the forced setup — no need
+  // to expose the option again (per user requirement).
+  const changePwdBtn = document.getElementById('change-pwd-btn');
+  if (changePwdBtn) {
+    changePwdBtn.style.display = user.isDefault ? 'inline-flex' : 'none';
+  }
 }
 
 function checkSession() {
+  // Always reload usersDB fresh from localStorage so an in-memory stale state
+  // never causes wrong decisions (e.g. isDefault:true from a previous run).
+  usersDB = loadUsers();
+
   if (sessionKey && usersDB[sessionKey]) {
     showApp();
   } else {
@@ -178,14 +250,20 @@ document.getElementById('toggle-pwd-visibility').addEventListener('click', () =>
 // Login submit
 document.getElementById('login-form').addEventListener('submit', (e) => {
   e.preventDefault();
-  const key      = selectedUserKey;                          // "dinesh" or "mukesh"
-  const user     = usersDB[key];
-  const typed    = document.getElementById('login-password').value;
+  const key      = selectedUserKey;   // 'dinesh' or 'mukesh'
+  const typed    = document.getElementById('login-password').value.trim();
   const errorBox = document.getElementById('login-error');
   const errorTxt = document.getElementById('login-error-text');
 
+  // Always reload usersDB fresh from localStorage at login time.
+  // This ensures we use the absolute latest saved password even if
+  // some other tab/window changed it.
+  usersDB = loadUsers();
+
+  const user = usersDB[key];
+
   if (!user) {
-    errorTxt.textContent = 'Account not found.';
+    errorTxt.textContent = 'Account not found. Contact administrator.';
     errorBox.style.display = 'flex';
     return;
   }
@@ -196,17 +274,16 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
     return;
   }
 
-  // Correct password
+  // Correct password — clear any error
   errorBox.style.display = 'none';
 
+  // If the user is still on the default password, force them to set a personal one
   if (user.isDefault) {
-    // Force password change before entering
     pendingLoginKey = key;
-    forcedPwdChange = true;
-    document.getElementById('pwd-change-title').textContent = `Hi ${user.name.split(' ')[0]}, Set Your Password`;
-    document.getElementById('pwd-change-subtitle').textContent = 'You are using the default password "12345". Please set a personal password to continue.';
+    document.getElementById('pwd-change-title').textContent    = `Hi ${user.name.split(' ')[0]}, Set Your Password`;
+    document.getElementById('pwd-change-subtitle').textContent = 'You are using the default password. Please set a personal password before continuing.';
     document.getElementById('pwd-change-form').reset();
-    document.getElementById('pwd-change-error').style.display = 'none';
+    document.getElementById('pwd-change-error').style.display  = 'none';
     showPwdChangeScreen();
   } else {
     completeLogin(key);
@@ -215,39 +292,43 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
 
 /* =============================================
    FORCED PASSWORD CHANGE FORM
+   (shown only when logging in with default password)
 ============================================= */
 document.getElementById('pwd-change-form').addEventListener('submit', (e) => {
   e.preventDefault();
-  const newPwd     = document.getElementById('new-pwd').value;
-  const confirmPwd = document.getElementById('confirm-pwd').value;
-  const errBox     = document.getElementById('pwd-change-error');
-  const errTxt     = document.getElementById('pwd-change-error-text');
+  const newPwd  = document.getElementById('new-pwd').value.trim();
+  const confPwd = document.getElementById('confirm-pwd').value.trim();
+  const errBox  = document.getElementById('pwd-change-error');
+  const errTxt  = document.getElementById('pwd-change-error-text');
 
-  if (newPwd !== confirmPwd) {
-    errTxt.textContent = 'Passwords do not match. Please re-enter.';
-    errBox.style.display = 'flex';
-    return;
-  }
-
-  if (newPwd === '12345') {
-    errTxt.textContent = 'New password cannot be the default "12345". Choose a unique password.';
-    errBox.style.display = 'flex';
-    return;
-  }
-
+  // Validation
   if (newPwd.length < 4) {
     errTxt.textContent = 'Password must be at least 4 characters long.';
     errBox.style.display = 'flex';
     return;
   }
 
+  if (newPwd === '12345') {
+    errTxt.textContent = 'Cannot use "12345" as your password. Choose something personal.';
+    errBox.style.display = 'flex';
+    return;
+  }
+
+  if (newPwd !== confPwd) {
+    errTxt.textContent = 'Passwords do not match. Please re-enter.';
+    errBox.style.display = 'flex';
+    return;
+  }
+
   errBox.style.display = 'none';
+
+  // Update password in memory and IMMEDIATELY persist to canonical localStorage key.
+  // This is the single source of truth for all future logins.
   const key = pendingLoginKey;
   usersDB[key].password  = newPwd;
   usersDB[key].isDefault = false;
-  saveUsers(usersDB);
+  saveUsers(usersDB); // <-- save RIGHT NOW before anything else
 
-  forcedPwdChange = false;
   pendingLoginKey = null;
   completeLogin(key);
 });
@@ -257,9 +338,12 @@ document.getElementById('pwd-change-form').addEventListener('submit', (e) => {
 ============================================= */
 function completeLogin(key) {
   sessionKey = key;
+  // Persist session so reopening the same browser goes straight to the app
   localStorage.setItem(SESSION_KEY, key);
   showApp();
+  // Log the login event (uses activeUser() which now works since sessionKey is set)
   logActivity('User Logged In', `${usersDB[key].name} signed in successfully.`);
+  // Persist all state (items, payments, logs, users)
   saveAll();
 }
 
@@ -293,13 +377,13 @@ document.getElementById('cancel-changepwd-modal').addEventListener('click', () =
 
 document.getElementById('changepwd-form').addEventListener('submit', (e) => {
   e.preventDefault();
-  const newPwd  = document.getElementById('changepwd-new').value;
-  const confPwd = document.getElementById('changepwd-confirm').value;
+  const newPwd  = document.getElementById('changepwd-new').value.trim();
+  const confPwd = document.getElementById('changepwd-confirm').value.trim();
   const errBox  = document.getElementById('changepwd-error');
   const errTxt  = document.getElementById('changepwd-error-text');
 
-  if (newPwd !== confPwd) {
-    errTxt.textContent = 'Passwords do not match.';
+  if (newPwd.length < 4) {
+    errTxt.textContent = 'Password must be at least 4 characters.';
     errBox.style.display = 'flex';
     return;
   }
@@ -310,14 +394,25 @@ document.getElementById('changepwd-form').addEventListener('submit', (e) => {
     return;
   }
 
+  if (newPwd !== confPwd) {
+    errTxt.textContent = 'Passwords do not match. Please re-enter.';
+    errBox.style.display = 'flex';
+    return;
+  }
+
   errBox.style.display = 'none';
+
+  // IMMEDIATELY save the new password before anything else.
+  // This ensures even if the page is closed right after clicking Save,
+  // the new password is already persisted.
   usersDB[sessionKey].password  = newPwd;
   usersDB[sessionKey].isDefault = false;
-  saveUsers(usersDB);
+  saveUsers(usersDB);  // <-- write to localStorage NOW
+
   logActivity('Password Changed', `${usersDB[sessionKey].name} changed their account password.`);
   document.getElementById('changepwd-modal').classList.remove('open');
   saveAll();
-  alert(`Password updated successfully!`);
+  alert('Password updated successfully! Your new password will be required next time you log in.');
 });
 
 /* =============================================
